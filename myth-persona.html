@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>神話キャラクター診断 ── MYTH PERSONA</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+JP:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --gold:#c9a227;--gold-l:#f0d060;--gold-d:rgba(201,162,39,.22);
+  --bg:#080714;--bg-mid:#110e2a;--bg-card:rgba(16,12,38,.93);
+  --silver:#c0b8d8;--text:#e8e0f5;--text-dim:#9088b0;
+}
+body{min-height:100vh;background:radial-gradient(ellipse at 50% 30%,#1a1535 0%,var(--bg) 70%);color:var(--text);font-family:'Noto Serif JP',serif;overflow-x:hidden}
+#starCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+.screen{position:relative;z-index:1;display:none;min-height:100vh}
+.screen.active{display:flex}
+.container{width:100%;max-width:740px;margin:0 auto;padding:30px 20px 60px}
+
+/* ── Title ── */
+#titleScreen{align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:48px 20px}
+.ornament{color:var(--gold);font-size:1.2rem;letter-spacing:.5em;margin-bottom:16px;animation:gpulse 3s ease-in-out infinite}
+@keyframes gpulse{0%,100%{text-shadow:0 0 8px rgba(201,162,39,.4)}50%{text-shadow:0 0 24px rgba(201,162,39,.9),0 0 50px rgba(201,162,39,.3)}}
+.main-title{font-family:'Cinzel',serif;font-size:clamp(2rem,7vw,3.8rem);font-weight:700;color:var(--gold-l);text-shadow:0 0 30px rgba(201,162,39,.6);letter-spacing:.15em;margin-bottom:6px}
+.subtitle{font-size:clamp(.8rem,2.5vw,1.05rem);color:var(--silver);letter-spacing:.35em;margin-bottom:32px}
+.myth-grid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:560px;margin-bottom:36px}
+.mbadge{display:flex;flex-direction:column;align-items:center;gap:5px;background:rgba(255,255,255,.03);border:1px solid var(--gold-d);border-radius:10px;padding:10px 14px;transition:all .3s;cursor:default}
+.mbadge:hover{background:rgba(201,162,39,.07);border-color:rgba(201,162,39,.5);transform:translateY(-2px)}
+.mbadge .mi{font-size:1.5rem}
+.mbadge .ml{font-size:.62rem;letter-spacing:.2em;color:var(--gold)}
+.lead{max-width:460px;line-height:2;color:var(--text-dim);font-size:.92rem;margin-bottom:42px}
+.btn-start{position:relative;background:linear-gradient(135deg,var(--bg-mid),#2d2660);border:2px solid var(--gold);color:var(--gold-l);padding:15px 52px;font-size:1rem;font-family:'Noto Serif JP',serif;font-weight:700;cursor:pointer;letter-spacing:.25em;clip-path:polygon(13px 0%,calc(100% - 13px) 0%,100% 50%,calc(100% - 13px) 100%,13px 100%,0% 50%);overflow:hidden;transition:all .3s}
+.btn-start::after{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(201,162,39,.25),transparent);transition:left .5s}
+.btn-start:hover::after{left:100%}
+.btn-start:hover{background:linear-gradient(135deg,#2d2660,#3d3690);box-shadow:0 0 35px rgba(201,162,39,.45);transform:translateY(-2px)}
+
+/* ── Progress ── */
+.progress-wrap{margin-bottom:26px}
+.progress-meta{display:flex;justify-content:space-between;margin-bottom:7px;font-size:.78rem;color:var(--gold);letter-spacing:.1em}
+.progress-track{height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l));border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1);box-shadow:0 0 8px rgba(201,162,39,.5)}
+
+/* ── Question Card ── */
+.q-card{background:var(--bg-card);border:1px solid var(--gold-d);border-radius:20px;padding:38px 34px;backdrop-filter:blur(12px);box-shadow:0 12px 50px rgba(0,0,0,.55),inset 0 1px 0 rgba(201,162,39,.07);position:relative;animation:slideUp .45s cubic-bezier(.4,0,.2,1)}
+@keyframes slideUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+.q-num{font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.35em;color:var(--gold);margin-bottom:12px}
+.q-text{font-size:clamp(1rem,3vw,1.28rem);line-height:1.85;color:var(--text);margin-bottom:30px}
+.answers{display:flex;flex-direction:column;gap:10px}
+.ans-btn{background:rgba(255,255,255,.025);border:1px solid rgba(201,162,39,.17);border-radius:11px;padding:14px 17px;color:var(--text);font-family:'Noto Serif JP',serif;font-size:.9rem;cursor:pointer;text-align:left;line-height:1.6;position:relative;overflow:hidden;transition:all .25s}
+.ans-btn .al{font-family:'Cinzel',serif;font-size:.75rem;color:var(--gold);font-weight:700;margin-right:9px}
+.ans-btn::before{content:'';position:absolute;left:0;top:0;width:3px;height:100%;background:linear-gradient(180deg,var(--gold),var(--gold-l));transform:scaleY(0);transform-origin:bottom;transition:transform .25s}
+.ans-btn:hover{background:rgba(201,162,39,.09);border-color:rgba(201,162,39,.5);transform:translateX(4px);box-shadow:0 4px 18px rgba(201,162,39,.14)}
+.ans-btn:hover::before,.ans-btn.selected::before{transform:scaleY(1)}
+.ans-btn.selected{background:rgba(201,162,39,.13);border-color:var(--gold);pointer-events:none}
+.corner{position:absolute;width:18px;height:18px;opacity:.3;border-color:var(--gold);border-style:solid}
+.corner.tl{top:13px;left:13px;border-width:1px 0 0 1px}
+.corner.tr{top:13px;right:13px;border-width:1px 1px 0 0}
+.corner.bl{bottom:13px;left:13px;border-width:0 0 1px 1px}
+.corner.br{bottom:13px;right:13px;border-width:0 1px 1px 0}
+
+/* ── Loading ── */
+#loadingOverlay{display:none;position:fixed;inset:0;background:rgba(8,7,20,.93);z-index:100;align-items:center;justify-content:center;flex-direction:column;gap:20px}
+#loadingOverlay.on{display:flex}
+.spinner{width:54px;height:54px;border:3px solid rgba(201,162,39,.15);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-msg{color:var(--gold);letter-spacing:.2em;font-size:.85rem;animation:fblink 1.5s ease-in-out infinite}
+@keyframes fblink{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ── Result ── */
+#resultScreen{flex-direction:column}
+.result-eyebrow{text-align:center;font-family:'Cinzel',serif;font-size:.75rem;letter-spacing:.4em;color:var(--gold);margin-bottom:20px}
+.result-card{background:var(--bg-card);border:1px solid rgba(201,162,39,.36);border-radius:22px;padding:46px 36px;text-align:center;position:relative;overflow:hidden;margin-bottom:26px;box-shadow:0 20px 70px rgba(0,0,0,.65),0 0 45px rgba(201,162,39,.06);animation:slideUp .5s ease}
+.result-card::before{content:'';position:absolute;top:-60%;left:-60%;width:220%;height:220%;background:radial-gradient(ellipse at center,rgba(201,162,39,.04) 0%,transparent 65%);animation:bgp 5s ease-in-out infinite}
+@keyframes bgp{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.res-myth{font-size:.75rem;letter-spacing:.3em;color:var(--gold);position:relative;z-index:1;margin-bottom:14px}
+.res-emoji{font-size:4.2rem;display:block;position:relative;z-index:1;margin:6px 0 16px;animation:float 3.5s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.res-name{font-family:'Cinzel',serif;font-size:clamp(1.8rem,6vw,3.5rem);font-weight:700;color:var(--gold-l);text-shadow:0 0 28px rgba(201,162,39,.65);position:relative;z-index:1;line-height:1.1}
+.res-name-jp{font-size:clamp(.9rem,2.5vw,1.15rem);color:var(--silver);margin:5px 0 14px;position:relative;z-index:1;letter-spacing:.12em}
+.res-title-badge{display:inline-block;border:1px solid rgba(201,162,39,.4);border-radius:20px;padding:4px 20px;font-size:.85rem;color:var(--gold);position:relative;z-index:1;margin-bottom:22px}
+.res-divider{width:80px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0 auto 22px;position:relative;z-index:1}
+.res-desc{line-height:2;color:#c0b8d8;font-size:.91rem;max-width:500px;margin:0 auto 26px;position:relative;z-index:1}
+.res-traits{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;position:relative;z-index:1}
+.trait{background:rgba(201,162,39,.09);border:1px solid rgba(201,162,39,.27);color:var(--gold-l);padding:4px 14px;border-radius:20px;font-size:.8rem}
+.share-block{text-align:center;margin-bottom:18px}
+.share-label{font-size:.75rem;letter-spacing:.3em;color:var(--gold);margin-bottom:13px}
+.share-row{display:flex;gap:11px;justify-content:center;flex-wrap:wrap}
+.btn-share{display:flex;align-items:center;gap:6px;padding:10px 20px;border-radius:30px;border:none;cursor:pointer;font-family:'Noto Serif JP',serif;font-size:.86rem;font-weight:700;transition:all .25s}
+.btn-share.tw{background:#1d9bf0;color:#fff}
+.btn-share.tw:hover{background:#0d8de0;transform:translateY(-2px);box-shadow:0 6px 20px rgba(29,155,240,.38)}
+.btn-share.ln{background:#06c755;color:#fff}
+.btn-share.ln:hover{background:#05b04b;transform:translateY(-2px);box-shadow:0 6px 20px rgba(6,199,85,.38)}
+.btn-share.cp{background:rgba(201,162,39,.12);color:var(--gold-l);border:1px solid var(--gold-d)}
+.btn-share.cp:hover{background:rgba(201,162,39,.22);transform:translateY(-2px);box-shadow:0 6px 20px rgba(201,162,39,.25)}
+.btn-retry{display:block;margin:0 auto;background:transparent;border:1px solid rgba(255,255,255,.17);color:var(--text-dim);padding:10px 30px;border-radius:30px;font-family:'Noto Serif JP',serif;font-size:.86rem;cursor:pointer;transition:all .25s}
+.btn-retry:hover{border-color:rgba(255,255,255,.45);color:var(--text)}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(16,12,38,.97);border:1px solid var(--gold);color:var(--gold-l);padding:10px 24px;border-radius:30px;font-size:.86rem;z-index:200;transition:transform .3s cubic-bezier(.4,0,.2,1);white-space:nowrap}
+.toast.show{transform:translateX(-50%) translateY(0)}
+@media(max-width:560px){.q-card{padding:24px 16px}.result-card{padding:32px 16px}.myth-grid{gap:7px}.mbadge{padding:8px 10px}}
+</style>
+</head>
+<body>
+<canvas id="starCanvas"></canvas>
+<div id="loadingOverlay"><div class="spinner"></div><div class="loading-msg">神々の神託を読み解いています…</div></div>
+<div class="toast" id="toast"></div>
+
+<!-- Title -->
+<div class="screen active" id="titleScreen">
+  <div class="container" style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding-top:50px;padding-bottom:50px">
+    <div class="ornament">✦ &nbsp; ✦ &nbsp; ✦</div>
+    <h1 class="main-title">MYTH PERSONA</h1>
+    <p class="subtitle">神話キャラクター診断 ── 100体</p>
+    <div class="myth-grid">
+      <div class="mbadge"><span class="mi">⚡</span><span class="ml">GREEK</span></div>
+      <div class="mbadge"><span class="mi">🌿</span><span class="ml">NORSE</span></div>
+      <div class="mbadge"><span class="mi">🌸</span><span class="ml">JAPAN</span></div>
+      <div class="mbadge"><span class="mi">🕉️</span><span class="ml">INDIA</span></div>
+      <div class="mbadge"><span class="mi">🍀</span><span class="ml">CELTIC</span></div>
+      <div class="mbadge"><span class="mi">☥</span><span class="ml">EGYPT</span></div>
+      <div class="mbadge"><span class="mi">🐉</span><span class="ml">CHINA</span></div>
+      <div class="mbadge"><span class="mi">🏺</span><span class="ml">MESO</span></div>
+      <div class="mbadge"><span class="mi">🌺</span><span class="ml">AZTEC</span></div>
+    </div>
+    <p class="lead">9つの神話・100体のキャラクターから、あなたの魂に宿る神話的本質を診断します。<br>10の問いに答えて、運命の神を見つけよう。</p>
+    <button class="btn-start" onclick="startQuiz()">診断を始める</button>
+  </div>
+</div>
+
+<!-- Quiz -->
+<div class="screen" id="quizScreen" style="flex-direction:column">
+  <div class="container">
+    <div class="progress-wrap">
+      <div class="progress-meta"><span id="qCounter">質問 1 / 10</span><span id="qPercent">0%</span></div>
+      <div class="progress-track"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+    </div>
+    <div class="q-card" id="qCard">
+      <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+      <div class="q-num" id="qNum">QUESTION 01</div>
+      <div class="q-text" id="qText"></div>
+      <div class="answers" id="answers"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Result -->
+<div class="screen" id="resultScreen">
+  <div class="container">
+    <div class="result-eyebrow">✦ &nbsp; あなたの神話的本質 &nbsp; ✦</div>
+    <div class="result-card">
+      <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+      <div class="res-myth" id="resMytho"></div>
+      <span class="res-emoji" id="resEmoji"></span>
+      <div class="res-name" id="resName"></div>
+      <div class="res-name-jp" id="resNameJp"></div>
+      <div class="res-title-badge" id="resTitle"></div>
+      <div class="res-divider"></div>
+      <p class="res-desc" id="resDesc"></p>
+      <div class="res-traits" id="resTraits"></div>
+    </div>
+    <div class="share-block">
+      <p class="share-label">✦ &nbsp; 結果をシェアする &nbsp; ✦</p>
+      <div class="share-row">
+        <button class="btn-share tw" onclick="shareTw()">𝕏 Twitter</button>
+        <button class="btn-share ln" onclick="shareLn()">💬 LINE</button>
+        <button class="btn-share cp" onclick="copyRes()">📋 コピー</button>
+      </div>
+    </div>
+    <button class="btn-retry" onclick="restartQuiz()">もう一度診断する</button>
+  </div>
+</div>
+
+<script>
+// ── Traits: pow wis cre pas mys har cou fre tri nat jus tra ──
+const TR = ['pow','wis','cre','pas','mys','har','cou','fre','tri','nat','jus','tra'];
+
+const MYTH = {
+  greek :{label:'⚡ ギリシャ神話'},norse:{label:'🌿 北欧神話'},japan:{label:'🌸 日本神話'},
+  india :{label:'🕉️ インド神話'}, celtic:{label:'🍀 ケルト神話'},egypt:{label:'☥ エジプト神話'},
+  china :{label:'🐉 中国神話'},   meso :{label:'🏺 メソポタミア神話'},aztec:{label:'🌺 アステカ神話'}
+};
+
+// p = trait profile (only non-zero keys needed)
+const CHARS=[
+// ══ ギリシャ (15) ══
+{n:'Zeus',jp:'ゼウス',m:'greek',t:'天空の覇王',e:'⚡',
+ d:'天空に君臨する神々の王。圧倒的なカリスマと正義感で世界を統べ、激しくも寛大な威厳で周囲を導く生まれながらのリーダー。',
+ tr:['カリスマ','正義感','決断力','威厳','リーダーシップ'],p:{pow:3,jus:3,cou:2,tra:2,har:1,pas:1}},
+{n:'Athena',jp:'アテナ',m:'greek',t:'叡智の女神',e:'🦉',
+ d:'知恵と戦略の女神。感情に流されず冷静に最善策を見つけ、芸術と学問にも深い造詣を持つ頭脳明晰な存在。',
+ tr:['知恵','戦略','冷静さ','洞察力','芸術性'],p:{wis:3,jus:2,cou:2,cre:2,tri:1,pow:1}},
+{n:'Apollo',jp:'アポロン',m:'greek',t:'太陽と芸術の神',e:'☀️',
+ d:'太陽・音楽・予言を司る輝ける神。光り輝く創造性と美への感性で周囲に希望をもたらす、太陽のような存在。',
+ tr:['創造性','芸術','直感力','優雅さ','明るさ'],p:{cre:3,wis:2,har:2,tra:2,fre:1,pas:1}},
+{n:'Poseidon',jp:'ポセイドン',m:'greek',t:'大海の支配者',e:'🌊',
+ d:'広大な海を統べる神。深く豊かな感情と自由への渇望を持ち、穏やかなときは包容力を、怒れば嵐のような激しさを見せる。',
+ tr:['自由','情熱','探求心','包容力','奔放さ'],p:{fre:3,pas:3,nat:2,pow:2,cou:1,har:1}},
+{n:'Aphrodite',jp:'アフロディーテ',m:'greek',t:'愛と美の女神',e:'🌹',
+ d:'愛と美を司る女神。人の心に愛の炎を灯す神秘的な魅力を持ち、その存在が世界をより美しく感情豊かにする。',
+ tr:['愛','美','魅力','感受性','情熱'],p:{har:3,cre:2,mys:2,pas:2,fre:1}},
+{n:'Ares',jp:'アレス',m:'greek',t:'戦争の神',e:'⚔️',
+ d:'戦争と闘争を司る情熱の神。正面突破を好む直情型で、恐れを知らない炎のような行動力が戦場で輝く。',
+ tr:['情熱','勇猛','行動力','闘争心','直情'],p:{cou:3,pas:3,pow:2,fre:1,jus:1}},
+{n:'Hermes',jp:'ヘルメス',m:'greek',t:'旅人と商人の神',e:'🪽',
+ d:'神々の使者にして機知と話術の神。どんな場面でも生き抜く柔軟さと自由を愛する万能の知恵者。',
+ tr:['機知','話術','適応力','自由','好奇心'],p:{tri:3,fre:3,wis:2,cre:1,har:1}},
+{n:'Hades',jp:'ハーデス',m:'greek',t:'冥府の王',e:'💀',
+ d:'冥界を統べる神。神秘的で寡黙だが、確固たる秩序と深い公正さで領域を完璧に管理する揺るぎない存在。',
+ tr:['神秘','威厳','公正','沈黙','不動'],p:{mys:3,pow:2,jus:2,tra:2,wis:1}},
+{n:'Hephaestus',jp:'ヘファイストス',m:'greek',t:'鍛冶と創造の神',e:'🔥',
+ d:'火と鍛冶を司る職人の神。不屈の精神で積み重ねる創造力と、外見に惑わされない深い知性が武器。',
+ tr:['創造力','職人気質','忍耐','知性','誠実さ'],p:{cre:3,nat:2,wis:2,har:1,jus:1}},
+{n:'Dionysus',jp:'ディオニュソス',m:'greek',t:'酒と狂乱の神',e:'🍇',
+ d:'酒・祝宴・解放を司る神。日常の束縛を解き放ち、生の喜びと自由を全力で謳歌する愛に溢れた存在。',
+ tr:['自由','情熱','喜び','解放感','愛'],p:{pas:3,fre:3,har:2,mys:2,cre:1}},
+{n:'Artemis',jp:'アルテミス',m:'greek',t:'狩猟と月の女神',e:'🌙',
+ d:'狩猟・月・純潔を司る女神。野生の自由の中に生きる独立心と、自然と調和するストイックな強さが光る。',
+ tr:['自由','独立心','自然','純潔','凛然'],p:{fre:3,nat:3,cou:2,jus:1,mys:1}},
+{n:'Hera',jp:'ヘラ',m:'greek',t:'天界の女王',e:'👑',
+ d:'神々の女王にして婚姻を司る女神。誇り高く、圧倒的な品格と守るべきものへの揺るぎない忠誠心を持つ。',
+ tr:['誇り','品格','忠誠心','意志の強さ','威厳'],p:{pow:2,jus:3,har:2,tri:1,pas:1}},
+{n:'Demeter',jp:'デメテル',m:'greek',t:'大地と豊穣の女神',e:'🌾',
+ d:'大地と母性を司る女神。深い愛情で人々と自然を育む温かく包み込む存在で、その愛は失う痛みを知るほど深い。',
+ tr:['母性愛','慈愛','豊穣','忍耐','深い愛'],p:{nat:3,har:3,tra:1,jus:1,pas:1}},
+{n:'Persephone',jp:'ペルセポネ',m:'greek',t:'春と冥府の女王',e:'🌺',
+ d:'春と冥界を行き来する二面性を持つ女王。光と闇を等しく知るその経験が、深い共感力と変化を受け入れる強さを生んだ。',
+ tr:['二面性','共感力','変化','深み','しなやかさ'],p:{mys:2,nat:2,har:2,tra:2,wis:1}},
+{n:'Eros',jp:'エロス',m:'greek',t:'愛の神',e:'💘',
+ d:'愛と欲望を司る神。その矢が触れた者は抗えない愛に落ちる。可愛らしさの裏に、世界を揺るがす愛の力を秘める。',
+ tr:['愛','直感','感受性','情熱','魅力'],p:{har:3,pas:3,mys:1,cre:1,fre:1}},
+
+// ══ 北欧 (10) ══
+{n:'Odin',jp:'オーディン',m:'norse',t:'知識と魔術の王',e:'🔮',
+ d:'知識のために自らを犠牲にした北欧の主神。深遠な知恵と孤高の洞察力で世界を見通す、孤独な哲人。',
+ tr:['深遠な知恵','神秘','洞察力','孤高','長期的視野'],p:{wis:3,mys:3,tra:3,pow:2,tri:1}},
+{n:'Thor',jp:'トール',m:'norse',t:'雷鳴の勇者',e:'🔨',
+ d:'雷神として人間を守る北欧最強の戦士。真っ直ぐな誠実さと不屈の勇気で、仲間のために全力を尽くす。',
+ tr:['勇気','誠実さ','不屈','守護力','行動力'],p:{cou:3,pow:3,jus:2,har:1,pas:1}},
+{n:'Loki',jp:'ロキ',m:'norse',t:'狡知の変幻神',e:'🦊',
+ d:'北欧神話の悪戯神。固定観念を超えた独創性と柔軟な発想力が持ち味で、その核心には深い知性と情熱が宿る。',
+ tr:['独創性','適応力','機知','変幻自在','知性'],p:{tri:3,cre:3,fre:2,mys:1,wis:1}},
+{n:'Freya',jp:'フレイヤ',m:'norse',t:'愛と戦の女神',e:'🌺',
+ d:'愛と戦を同時に司る北欧最強の女神。美しく優しい一面と、いざとなれば誰よりも強く戦う多面的な存在。',
+ tr:['愛と力の共存','魅力','強い意志','魔術的感性','愛情'],p:{har:2,cou:2,mys:2,pas:2,cre:1,wis:1}},
+{n:'Baldur',jp:'バルドル',m:'norse',t:'光と純粋の神',e:'✨',
+ d:'北欧神話で最も美しく純粋な神。その輝きで全ての者に希望を与え、失われることで却って永遠の光となった。',
+ tr:['純粋さ','美しさ','希望','慈愛','光'],p:{har:3,tra:3,jus:2,cre:1,wis:1}},
+{n:'Tyr',jp:'テュール',m:'norse',t:'戦と正義の神',e:'⚖️',
+ d:'北欧神話の正義と法の神。フェンリルを縛るために自らの手を犠牲にした、信念のためには何も惜しまない究極の誠実者。',
+ tr:['正義','誠実さ','犠牲','勇気','信念'],p:{jus:3,cou:3,pow:1,tra:1,har:1}},
+{n:'Heimdall',jp:'ヘイムダル',m:'norse',t:'虹橋の番人',e:'🌈',
+ d:'アスガルドを守る黄金の番人。鋭敏な感覚で全てを見聞きし、揺るぎない責任感で職務を全うする守護者。',
+ tr:['鋭敏な感覚','責任感','忠実さ','警戒心','守護'],p:{jus:2,wis:2,nat:2,cou:2,tra:1}},
+{n:'Hel',jp:'ヘル',m:'norse',t:'冥界の支配者',e:'⚫',
+ d:'半分が生者・半分が死者の姿をした冥界の女神。淡々と冥界を管理する孤独な存在だが、その公正さは絶対的。',
+ tr:['神秘','孤独','公正さ','静粛','二面性'],p:{mys:3,tra:2,jus:1,nat:1,pow:1}},
+{n:'Sigurd',jp:'シグルズ',m:'norse',t:'竜殺しの英雄',e:'🐉',
+ d:'竜ファーヴニルを倒した北欧最大の英雄。恐れを知らない勇気と運命に立ち向かう不屈の意志を持つ。',
+ tr:['英雄性','勇気','不屈','運命への挑戦','冒険'],p:{cou:3,wis:2,fre:2,jus:1,pas:1}},
+{n:'Skadi',jp:'スカジ',m:'norse',t:'冬山の女神',e:'🏔️',
+ d:'山と冬と狩猟を司る女神。厳しい自然の中に生きる独立心と孤独を恐れない凛とした強さが際立つ。',
+ tr:['独立心','強さ','自然との共生','凛然','孤高'],p:{nat:3,fre:3,cou:2,jus:1,mys:1}},
+
+// ══ 日本 (10) ══
+{n:'Amaterasu',jp:'アマテラス',m:'japan',t:'天照らす大神',e:'🌅',
+ d:'天を照らし万物に恵みをもたらす太陽神。周囲を明るく照らす温かさと調和の力で、傷ついても再び輝く希望の体現者。',
+ tr:['温かさ','調和','慈愛','希望','再生力'],p:{har:3,tra:3,jus:2,cre:1,wis:1}},
+{n:'Susanoo',jp:'スサノオ',m:'japan',t:'嵐の英雄神',e:'⛩️',
+ d:'荒ぶる嵐の神にしてヤマタノオロチを倒した英雄。激しい感情の奥に宿る純粋な愛情と勇気が真の英雄性を形づくる。',
+ tr:['情熱','勇気','英雄性','純粋さ','保護本能'],p:{pas:3,cou:3,fre:2,nat:1,jus:1}},
+{n:'Tsukuyomi',jp:'ツクヨミ',m:'japan',t:'月読の神',e:'🌕',
+ d:'夜の世界を統べる月の神。静寂と神秘の中に深い知恵を宿す孤高で謎めいた存在で、冷静な眼差しが真実を映す。',
+ tr:['神秘','孤高','冷静','深い知恵','静粛'],p:{mys:3,tra:2,wis:2,jus:1,har:1}},
+{n:'Izanagi',jp:'イザナギ',m:'japan',t:'国生みの父神',e:'🌏',
+ d:'日本の国土を生んだ創造の父神。愛する者のために黄泉の国まで赴く深い愛情と、創造への強い意志を持つ。',
+ tr:['創造力','愛情','意志の強さ','冒険心','父性'],p:{cre:3,tra:3,jus:2,nat:1,har:1}},
+{n:'Izanami',jp:'イザナミ',m:'japan',t:'黄泉の女神',e:'🌑',
+ d:'国土を生み死を司る女神。生と死の境界に立ち全ての命の循環を理解する深い知恵を持つ。その愛は生を超え永遠に続く。',
+ tr:['神秘','深い愛','生と死の知恵','循環','超越'],p:{mys:3,tra:2,nat:2,har:1,wis:1}},
+{n:'Raijin',jp:'雷神',m:'japan',t:'雷鼓の神',e:'⚡',
+ d:'雷と嵐を司る激情の神。太鼓を叩き雷鳴を響かせるその姿は圧倒的なエネルギーの体現で、感情が爆発する情熱に溢れる。',
+ tr:['情熱','エネルギー','激情','力強さ','生命力'],p:{pas:3,nat:2,cou:2,fre:1,pow:1}},
+{n:'Fujin',jp:'風神',m:'japan',t:'風の神',e:'🌬️',
+ d:'風を操る自由奔放な神。縛られることを嫌い、どこへでも軽やかに飛んでいく変化と新しい息吹の体現者。',
+ tr:['自由','軽やかさ','変化','奔放','流動性'],p:{fre:3,nat:3,pas:1,cre:1}},
+{n:'Inari',jp:'稲荷大神',m:'japan',t:'豊穣と縁の神',e:'🦊',
+ d:'五穀豊穣と縁結びを司る神。狐を使いとし変化自在の知恵で人々の願いを叶える、深い慈愛と柔軟さを持つ。',
+ tr:['慈愛','柔軟性','縁結び','豊穣','知恵'],p:{har:2,nat:3,tri:2,cre:1,wis:1}},
+{n:'Benzaiten',jp:'弁財天',m:'japan',t:'芸術と知恵の女神',e:'🎵',
+ d:'音楽・芸術・知恵を司る七福神の一柱。その奏でる音楽は人の心を癒し、知性と芸術性を兼ね備えた優雅な存在。',
+ tr:['芸術性','知恵','優雅さ','表現力','美'],p:{cre:3,har:2,wis:2,mys:1,fre:1}},
+{n:'Ebisu',jp:'恵比寿',m:'japan',t:'福と豊漁の神',e:'🎣',
+ d:'七福神の中で唯一の日本生まれの神。朗らかな笑顔で人々を守護し、その温厚な誠実さが万人に愛される理由。',
+ tr:['朗らかさ','誠実さ','幸運','温厚','勤勉'],p:{har:3,jus:2,fre:2,nat:1,wis:1}},
+
+// ══ インド (15) ══
+{n:'Brahma',jp:'ブラフマー',m:'india',t:'創造の神',e:'🌸',
+ d:'宇宙を創造したヒンドゥー教の三大神。全てを生み出す無限の創造力と深遠な知恵を持ち、その思考が世界の形を決定する。',
+ tr:['創造力','知恵','超越','想像力','神格'],p:{cre:3,tra:3,wis:2,har:1,pow:1}},
+{n:'Vishnu',jp:'ヴィシュヌ',m:'india',t:'宇宙の維持者',e:'🪷',
+ d:'宇宙の秩序を維持するヒンドゥー主神。世界が危機に陥るたびに化身として降臨し、正義と調和を守り続ける永遠の守護者。',
+ tr:['守護','調和','正義','慈悲','不変の愛'],p:{har:3,jus:3,tra:3,wis:1,cou:1}},
+{n:'Shiva',jp:'シヴァ',m:'india',t:'破壊と再生の神',e:'🕉️',
+ d:'破壊と再生を司るヒンドゥー主神。破壊は次の創造のための必然であることを知る深遠な存在。その激しさの奥に宇宙の真理が宿る。',
+ tr:['変革','超越','情熱','神秘','再生'],p:{tra:3,pas:3,mys:3,cou:1,wis:1}},
+{n:'Lakshmi',jp:'ラクシュミー',m:'india',t:'富と美の女神',e:'🌺',
+ d:'富・美・幸運を司る女神。その姿を見るだけで豊かさがもたらされ、内外の美しさと惜しみない愛情が慈悲の体現者。',
+ tr:['豊かさ','美','慈悲','幸運','愛情'],p:{har:3,cre:2,tra:2,nat:1,jus:1}},
+{n:'Saraswati',jp:'サラスヴァティー',m:'india',t:'学問と芸術の女神',e:'📚',
+ d:'学問・音楽・芸術・言語を司る女神。その清らかな知性で人々を無知から解放し、知識と創造的表現を最高の徳とする。',
+ tr:['知識','芸術','創造','純粋さ','学問'],p:{wis:3,cre:3,har:2,tra:1,jus:1}},
+{n:'Durga',jp:'ドゥルガー',m:'india',t:'無敵の戦士女神',e:'🗡️',
+ d:'悪を打ち倒す無敵の戦士女神。十本の腕に武器を持ち、正義のためなら宇宙を敵に回しても退かない圧倒的な勇気を持つ。',
+ tr:['無敵の強さ','正義','勇気','守護','威厳'],p:{cou:3,jus:3,pow:2,har:1,tra:1}},
+{n:'Kali',jp:'カーリー',m:'india',t:'時と破壊の女神',e:'🖤',
+ d:'時間・死・変革を司る恐ろしくも慈悲深い女神。その激しい破壊は悪を根絶し人々を解放するためのもの。外見の恐ろしさと深い愛が共存する。',
+ tr:['変革','情熱','解放','神秘','深い慈悲'],p:{mys:3,pas:3,cou:3,tra:1,har:1}},
+{n:'Ganesha',jp:'ガネーシャ',m:'india',t:'知恵と成功の神',e:'🐘',
+ d:'象の頭を持つ障害を取り除く神。知恵と幸運をもたらし、どんな困難でも独自の発想でユーモラスに乗り越える存在。',
+ tr:['知恵','幸運','ユーモア','問題解決','始まり'],p:{wis:3,har:3,tri:2,jus:1,cre:1}},
+{n:'Krishna',jp:'クリシュナ',m:'india',t:'愛と策略の神',e:'🪈',
+ d:'愛・美・戦略を司る神。笛を奏でる愛の体現者でありながら戦場では卓越した戦略家でもある、魅力と知恵の完全体。',
+ tr:['愛','策略','魅力','知恵','多才'],p:{tri:3,har:3,wis:2,pas:1,cre:1}},
+{n:'Hanuman',jp:'ハヌマーン',m:'india',t:'忠義と力の神',e:'🐒',
+ d:'ラーマへの絶対的な忠誠で知られる猿神。山をも動かす怪力と主君への深い献身で、純粋な忠義が最大の強さとなる。',
+ tr:['忠義','献身','怪力','純粋さ','友情'],p:{cou:3,har:3,tra:2,jus:1,pow:1}},
+{n:'Indra',jp:'インドラ',m:'india',t:'雷雨の天帝',e:'⛈️',
+ d:'神々の王にして雷と戦争の神。圧倒的な権力と雷神としての力で天界を統べる英雄的な存在。',
+ tr:['権威','雷の力','英雄性','支配','勇猛'],p:{pow:3,cou:2,jus:2,fre:1,pas:1}},
+{n:'Agni',jp:'アグニ',m:'india',t:'聖なる火の神',e:'🔥',
+ d:'火・犠牲・神聖を司る神。神と人間を繋ぐ媒介者として、情熱的なエネルギーと純粋さであらゆるものを照らし浄化する。',
+ tr:['情熱','浄化','媒介','神聖','エネルギー'],p:{pas:3,cre:2,tra:2,nat:1,jus:1}},
+{n:'Varuna',jp:'ヴァルナ',m:'india',t:'宇宙秩序の神',e:'🌊',
+ d:'海・宇宙的秩序・誓いを司る神。全てを見通す目で宇宙の法則を守護し、深い知恵と絶対的な公正さを体現する。',
+ tr:['宇宙秩序','公正','深い知恵','誠実さ','洞察力'],p:{jus:3,wis:2,nat:2,tra:1,pow:1}},
+{n:'Arjuna',jp:'アルジュナ',m:'india',t:'最強の弓の英雄',e:'🏹',
+ d:'マハーバーラタの英雄にして最強の弓の使い手。卓越した技術と正義の心を持ちながら、愛する者を傷つける葛藤を抱える人間的な英雄。',
+ tr:['弓術','勇気','正義','葛藤','人間性'],p:{cou:3,wis:2,jus:2,har:1,pas:1}},
+{n:'Rama',jp:'ラーマ',m:'india',t:'理想の英雄王',e:'👑',
+ d:'ヴィシュヌの化身にして理想の王。正義・誠実・責任・愛を全て体現する完全な英雄で、いかなる逆境にも揺るがない信念を持つ。',
+ tr:['誠実さ','正義','責任感','理想の指導者','愛'],p:{jus:3,cou:3,har:2,tra:1,wis:1}},
+
+// ══ ケルト (10) ══
+{n:'The Dagda',jp:'ダグザ',m:'celtic',t:'善なる父神',e:'🍯',
+ d:'ケルト神話の父神。豊穣の大釜と魔法の棍棒を持ち、力と知恵と豊かさを同時に司る大らかで頼れる存在。',
+ tr:['豊穣','力強さ','大らかさ','知恵','父性'],p:{pow:2,har:3,nat:3,tra:1,wis:1}},
+{n:'The Morrigan',jp:'モリガン',m:'celtic',t:'戦と運命の女神',e:'🐦‍⬛',
+ d:'戦争・運命・カラスの女神。戦場を飛び回り英雄の運命を定める神秘的な力と戦士としての強さで、畏怖と尊敬を集める。',
+ tr:['運命','神秘','戦の力','予知','恐怖と魅力'],p:{mys:3,cou:3,pas:2,tri:1,tra:1}},
+{n:'Lugh',jp:'ルー',m:'celtic',t:'光と技の神',e:'⚡',
+ d:'太陽・技芸を司るケルトの万能神。あらゆる技術に長けた天才であり、輝かしい光の化身。才能と情熱で道を切り開く。',
+ tr:['万能の才','光','技芸','英雄性','輝き'],p:{cre:3,cou:3,wis:2,jus:1,pas:1}},
+{n:'Cú Chulainn',jp:'クー・フーリン',m:'celtic',t:'アイルランドの英雄',e:'🗡️',
+ d:'ケルト最大の英雄。戦闘狂化で無双の強さを発揮する孤独な戦士。短命を知りながらも全力で生き抜く凄絶な美学の持ち主。',
+ tr:['英雄性','孤独','情熱','圧倒的な力','運命への反抗'],p:{cou:3,pas:3,jus:2,fre:1,mys:1}},
+{n:'Brigid',jp:'ブリギット',m:'celtic',t:'火と詩と癒しの女神',e:'🕯️',
+ d:'詩・鍛冶・癒しの聖なる炎を司る女神。創造と癒しの力を兼ね備え、人々に温かさと霊感をもたらす聖なる存在。',
+ tr:['創造','癒し','詩的感性','温かさ','聖なる炎'],p:{cre:3,har:3,nat:2,wis:1,tra:1}},
+{n:'Cernunnos',jp:'ケルヌンノス',m:'celtic',t:'野生と自然の神',e:'🦌',
+ d:'角を持つ野生と自然の神。森と動物と豊穣を司り、生と死の輪廻を見守る原初の力を体現した神秘的な存在。',
+ tr:['自然との一体化','野性','神秘','輪廻','自由'],p:{nat:3,mys:3,fre:2,tra:1,har:1}},
+{n:'Nuada',jp:'ヌアザ',m:'celtic',t:'銀の腕の王',e:'🤚',
+ d:'ダーナ神族の初代王。戦いで腕を失いながらも銀の義肢を得て王座に返り咲いた、誇り高く公正な統治者。',
+ tr:['誇り','公正な統治','不屈','王者の風格','誠実さ'],p:{jus:3,pow:2,cou:2,har:1,tra:1}},
+{n:'Bran',jp:'ブラン',m:'celtic',t:'予言の王',e:'🦅',
+ d:'深い知恵と遠見の力を持つ予言的な王。カラスと縁が深く謎めいた存在で、その予言は時代を超えた真実を含む。',
+ tr:['予言','深い知恵','神秘','王者','洞察'],p:{wis:2,tra:2,mys:2,jus:1,cre:1}},
+{n:'Danu',jp:'ダヌ',m:'celtic',t:'大地の母なる女神',e:'🌿',
+ d:'ダーナ神族の母なる女神。大地と豊穣の根源的な力を持ち、全ての命を包み込む深い愛情が全存在の礎となる。',
+ tr:['母性','大地の力','豊穣','慈愛','根源的な力'],p:{nat:3,har:3,tra:2,cre:1,wis:1}},
+{n:'Arawn',jp:'アラン',m:'celtic',t:'冥界の王',e:'🌒',
+ d:'ケルトの冥界アンヌンを統べる王。厳粛で公正な統治で死者の世界に秩序をもたらす神秘的な威厳の持ち主。',
+ tr:['神秘','公正','威厳','誠実さ','冥界の支配'],p:{mys:3,jus:2,tra:2,pow:1,wis:1}},
+
+// ══ エジプト (15) ══
+{n:'Ra',jp:'ラー',m:'egypt',t:'太陽神の王',e:'☀️',
+ d:'全てを照らす太陽神にしてエジプトの主神。その光は闇を打ち払い生命の源となる。絶対的な権威と神聖さで宇宙の秩序を守る。',
+ tr:['権威','神聖','生命の源','秩序','輝き'],p:{pow:3,tra:3,jus:2,har:1,cou:1}},
+{n:'Osiris',jp:'オシリス',m:'egypt',t:'復活と冥府の神',e:'🌿',
+ d:'死と復活・農業を司る神。殺されながらも蘇った死と再生の象徴。深い慈悲で死者を裁く公正な王。',
+ tr:['復活','公正','慈悲','死と再生','永遠'],p:{jus:3,tra:3,har:2,mys:1,wis:1}},
+{n:'Isis',jp:'イシス',m:'egypt',t:'魔術と母性の女神',e:'🦅',
+ d:'魔術・母性・治癒を司るエジプト最大の女神。夫を蘇らせた深い愛と、あらゆる困難を克服する知恵と魔術の力を持つ。',
+ tr:['魔術','母性愛','知恵','治癒','強い意志'],p:{wis:3,mys:3,har:2,cre:1,tra:1}},
+{n:'Horus',jp:'ホルス',m:'egypt',t:'天空と王権の神',e:'🦅',
+ d:'鷹の頭を持つ天空と王権の神。父の仇をとるために戦い続けた正義の戦士で、その目は全てを見通す王者の力を象徴する。',
+ tr:['正義','勇気','王者の力','守護','天空の眼'],p:{cou:3,jus:3,pow:2,har:1,tra:1}},
+{n:'Seth',jp:'セト',m:'egypt',t:'混沌と砂漠の神',e:'🌪️',
+ d:'混沌・砂漠・嵐を司る神。秩序への反逆者でありながら外部の脅威から守る独特の役割を持つ、型にはまらない孤独な強者。',
+ tr:['混沌','反逆心','独自性','野性','孤独な強さ'],p:{pas:3,fre:2,mys:2,pow:1,cou:1}},
+{n:'Anubis',jp:'アヌビス',m:'egypt',t:'死と裁きの神',e:'⚖️',
+ d:'死者の守護者にして魂の案内人。ジャッカルの頭を持つ神は、厳粛かつ公正に死者の魂を裁く誠実さと慈悲の体現者。',
+ tr:['公正な裁き','神秘','死者の守護','誠実さ','厳粛'],p:{mys:3,jus:3,tra:2,wis:1,har:1}},
+{n:'Thoth',jp:'トト',m:'egypt',t:'知恵と文字の神',e:'📜',
+ d:'知恵・魔術・文字・月を司るエジプト最大の知識の神。全ての秘密の守護者にして神々の書記官。その知識は宇宙の成り立ちを記録する。',
+ tr:['知恵','文字','神秘的知識','公正','記録'],p:{wis:3,cre:3,jus:2,mys:1,tra:1}},
+{n:'Bastet',jp:'バステト',m:'egypt',t:'猫と守護の女神',e:'🐱',
+ d:'猫の頭を持つ家庭と守護の女神。柔らかな外見の裏に獰猛な戦士としての側面も持つ、家族を守り生活に喜びをもたらす存在。',
+ tr:['守護','喜び','二面性','優しさ','家庭の守り神'],p:{har:2,nat:2,cre:2,mys:2,fre:1}},
+{n:'Hathor',jp:'ハトホル',m:'egypt',t:'愛と音楽の女神',e:'🎶',
+ d:'愛・美・音楽・喜びを司る女神。その音楽は神々でさえ踊らせ、人々の生活に喜びと豊かさをもたらす太陽のような慈愛の体現者。',
+ tr:['愛','音楽','喜び','美','慈愛'],p:{har:3,cre:3,pas:1,nat:1,wis:1}},
+{n:'Sekhmet',jp:'セクメト',m:'egypt',t:'戦争と癒しの女神',e:'🦁',
+ d:'ライオンの頭を持つ戦争と癒しの女神。圧倒的な力は破壊と治癒の両方を担う。怒りは凄まじいが、その力は正義のためにも使われる。',
+ tr:['圧倒的な力','情熱','二面性','正義','癒し'],p:{cou:3,pas:3,jus:1,pow:1,har:1}},
+{n:'Ptah',jp:'プタハ',m:'egypt',t:'創造と職人の神',e:'🏺',
+ d:'言葉と思考で世界を創造した職人と芸術家の神。静かな思慮と深い創造力で全ての技芸を生み出した。',
+ tr:['創造力','職人気質','深い思慮','言葉の力','芸術'],p:{cre:3,wis:2,nat:2,har:1,tra:1}},
+{n:'Nephthys',jp:'ネフティス',m:'egypt',t:'夜と哀悼の女神',e:'🌑',
+ d:'死・夜・哀悼を司る謎めいた女神。死者を見守り魂を慰める神秘的な力と深い共感力が、痛みを抱える者の支えとなる。',
+ tr:['神秘','共感力','哀悼','静けさ','慰め'],p:{mys:3,har:2,tra:2,wis:1,nat:1}},
+{n:'Nut',jp:'ヌト',m:'egypt',t:'天空の女神',e:'🌌',
+ d:'星々を体に宿す天空の女神。毎夜太陽を飲み込み夜明けに産み出す。広大な宇宙を身体で表現する、全てを包み込む母なる宇宙そのもの。',
+ tr:['宇宙的スケール','包容力','神秘','母性','超越'],p:{tra:3,nat:2,har:2,mys:1,cre:1}},
+{n:'Geb',jp:'ゲブ',m:'egypt',t:'大地の神',e:'🌍',
+ d:'大地そのものを体現する神。全ての命を育む地盤となり、深い安定感と包容力で全ての生命を支える根源的な存在。',
+ tr:['安定','大地の力','包容力','生命の根源','穏やかさ'],p:{nat:3,tra:2,har:2,pow:1,wis:1}},
+{n:'Maat',jp:'マアト',m:'egypt',t:'真実と正義の女神',e:'⚖️',
+ d:'真実・正義・宇宙的秩序を司る女神。その羽根と魂の重さを比べ死後の運命を決定する。誠実と公正こそが宇宙の根本だと教える。',
+ tr:['真実','正義','宇宙の秩序','誠実さ','公正'],p:{jus:3,tra:3,har:1,wis:1,pow:1}},
+
+// ══ 中国 (15) ══
+{n:'Guanyin',jp:'観音菩薩',m:'china',t:'慈悲の菩薩',e:'🪷',
+ d:'あらゆる苦しみを聞き届ける慈悲の菩薩。人々の嘆きに耳を傾け救済の手を差し伸べる、無限の慈悲の体現者。',
+ tr:['慈悲','共感力','救済','温かさ','無限の愛'],p:{har:3,tra:3,wis:2,jus:1,cre:1}},
+{n:'Sun Wukong',jp:'孫悟空',m:'china',t:'斉天大聖',e:'🐒',
+ d:'天界さえも揺るがした斉天大聖。圧倒的な能力と機知で天地を自在に駆け巡る究極の自由人。型破りな行動力と底抜けの明るさが魅力。',
+ tr:['自由','機知','型破り','行動力','明るさ'],p:{tri:3,fre:3,cou:2,pas:1,cre:1}},
+{n:'Nezha',jp:'哪吒（ナタ）',m:'china',t:'幼き天の大将',e:'🔥',
+ d:'炎の輪と宇宙の布を操る若き戦神。既存の秩序に縛られず爆発的なエネルギーで己の道を切り開く純粋な反骨精神が輝く。',
+ tr:['反骨精神','自由','爆発的エネルギー','純粋さ','勇猛'],p:{cou:3,fre:3,pas:2,jus:1,cre:1}},
+{n:'Nuwa',jp:'女媧（ジョカ）',m:'china',t:'人類の創造者',e:'🐍',
+ d:'泥から人間を生み出し崩れた天を五色の石で補修した創造の女神。深い愛情で人類を生み出し、世界の危機に自ら立ち上がる母神。',
+ tr:['創造','母性愛','修復力','深い愛','行動力'],p:{cre:3,har:3,tra:2,nat:1,cou:1}},
+{n:'Fuxi',jp:'伏羲（フッキ）',m:'china',t:'文明の始祖神',e:'☯️',
+ d:'八卦を創り文字と音楽を人類に授けた文明の神。宇宙の深い理を洞察し形にして伝えた、知恵と文化の源泉たる偉大な創始者。',
+ tr:['知恵','文明の礎','洞察力','創造','調和の理'],p:{wis:3,cre:3,tra:2,jus:1,har:1}},
+{n:"Chang'e",jp:'嫦娥（じょうが）',m:'china',t:'月の女神',e:'🌙',
+ d:'不死の薬を飲み月に昇った美しい女神。一人月宮殿で過ごす孤独の中に深い神秘と美しさが宿る、儚くも孤高な存在。',
+ tr:['神秘','孤高の美','月の輝き','儚さ','深い感情'],p:{mys:3,har:2,tra:2,cre:1,wis:1}},
+{n:'Hou Yi',jp:'后羿（こうき）',m:'china',t:'弓の英雄神',e:'🏹',
+ d:'十個の太陽のうち九つを射落とした伝説の弓の神。人々を救うために卓越した技術と勇気を発揮し、愛する者のために全てを捧げた英雄。',
+ tr:['弓術','英雄性','正義感','献身','悲劇的崇高さ'],p:{cou:3,jus:3,pas:1,fre:1,wis:1}},
+{n:'Zhu Rong',jp:'祝融（しゅくゆう）',m:'china',t:'聖なる火の神',e:'🔥',
+ d:'中国神話の火の神にして南方を守る神。燃え盛る炎のような情熱と圧倒的な力で敵を打ち砕く、文明の火と破壊の力の体現者。',
+ tr:['情熱','炎の力','勇猛','南方の守護','生命力'],p:{pas:3,cou:2,nat:2,pow:1,jus:1}},
+{n:'Guan Yu',jp:'関羽（かんう）',m:'china',t:'武神と義の神',e:'🗡️',
+ d:'三国志の英雄にして武神・義の神。圧倒的な武力と義に基づく絶対的な誠実さで人々に深く信頼される正義の体現者。',
+ tr:['義','忠誠','武の誉れ','誠実さ','信頼'],p:{jus:3,cou:3,har:2,pow:1,wis:1}},
+{n:'Zhong Kui',jp:'鍾馗（しょうき）',m:'china',t:'鬼神退治の神',e:'👺',
+ d:'醜い風貌ながら鬼神を打ち倒す守護神。外見に騙されない強さと邪悪を見抜く洞察力で、人々を悪霊から守り続ける圧倒的な正義神。',
+ tr:['悪祓い','正義','洞察力','圧倒的迫力','守護'],p:{cou:3,jus:3,mys:2,pow:1,wis:1}},
+{n:'Erlang Shen',jp:'二郎神（にろうしん）',m:'china',t:'三つ目の天神',e:'👁️',
+ d:'三つ目を持つ天界最強の武神。孫悟空とも互角に戦った実力者で、真実を見通す第三の目と正義を貫く強靭な意志が特徴。',
+ tr:['圧倒的実力','洞察力','正義','変化自在','天の守護'],p:{cou:3,jus:2,wis:2,pow:1,tri:1}},
+{n:'Long Wang',jp:'東海竜王',m:'china',t:'海と雨の支配者',e:'🐉',
+ d:'東の海を支配する竜王。雨と水を司り海底の宮殿から海洋を統べる。その権威と神秘は深海の如く底知れず、時に恵みを嵐をもたらす。',
+ tr:['権威','神秘','自然の力','深海の知恵','支配'],p:{pow:2,nat:3,fre:2,mys:2,tra:1}},
+{n:'Xi Wangmu',jp:'西王母（せいおうぼ）',m:'china',t:'不死の仙女王',e:'🍑',
+ d:'不死の桃を管理する西方の女王。数千年を生き神々と仙人に不老不死の術を授ける、圧倒的な知恵と神秘的な力を持つ超越した存在。',
+ tr:['超越的知恵','不死','神秘','権威','永遠'],p:{tra:3,wis:3,mys:2,har:1,pow:1}},
+{n:'Mazu',jp:'媽祖（まそ）',m:'china',t:'海の守護女神',e:'⚓',
+ d:'海難から人々を守る慈悲深い女神。漁師や船乗りの守護神として嵐の海でも人々を導く、深い慈悲と実践的な守護力の持ち主。',
+ tr:['慈悲','海の守護','実践的な力','誠実さ','温かさ'],p:{har:3,nat:2,jus:2,cou:1,tra:1}},
+{n:'Caishen',jp:'財神（ざいしん）',m:'china',t:'富と幸運の神',e:'💰',
+ d:'富と財運を司る幸運の神。人々に豊かさをもたらし勤勉と誠実さを称える。明るく豪快な性格と惜しみない幸運が特徴の笑顔の神。',
+ tr:['繁栄','幸運','寛大さ','明るさ','誠実な勤勉さ'],p:{har:3,jus:2,fre:2,pas:1,cre:1}},
+
+// ══ メソポタミア (5) ══
+{n:'Marduk',jp:'マルドゥク',m:'meso',t:'バビロンの主神',e:'⭐',
+ d:'混沌の竜ティアマトを倒し世界を創造したバビロン最高神。圧倒的な力と知恵で秩序をもたらした神々の王に相応しい威厳の創造者。',
+ tr:['覇権','創造力','秩序','知恵','圧倒的な力'],p:{pow:3,jus:3,cre:2,tra:1,wis:1}},
+{n:'Ishtar',jp:'イシュタル',m:'meso',t:'愛と戦争の女神',e:'⭐',
+ d:'愛・美・戦争・豊穣を司るメソポタミア最大の女神。情熱的で複雑なその愛は天地を動かすほど強烈で、愛と戦が表裏一体の存在。',
+ tr:['情熱的な愛','戦の力','魅力','複雑さ','強烈な意志'],p:{pas:3,har:2,cou:2,mys:2,pow:1}},
+{n:'Gilgamesh',jp:'ギルガメシュ',m:'meso',t:'人類最古の英雄王',e:'🏛️',
+ d:'人類最古の英雄叙事詩の主人公。神と人間の血を引く英雄王として冒険を続け、傷と喪失を経て真の人間性に目覚めた最も人間らしい英雄。',
+ tr:['英雄性','冒険心','人間性','成長','友情'],p:{cou:3,fre:3,pow:2,wis:1,har:1}},
+{n:'Enkidu',jp:'エンキドゥ',m:'meso',t:'野生の英雄',e:'🦁',
+ d:'神が粘土から創った野生の人。文明と野性の間に立ち、純粋な自然の力とギルガメシュへの深い友情・献身を持つ最強の戦友。',
+ tr:['野生の力','純粋さ','友情','自然との一体化','誠実さ'],p:{nat:3,cou:3,fre:2,har:1,pas:1}},
+{n:'Enlil',jp:'エンリル',m:'meso',t:'嵐と風の神',e:'🌪️',
+ d:'天と地の間を支配するシュメールの主神。嵐と風を操る圧倒的な力で宇宙の秩序を保ち、時に洪水さえも引き起こす厳格な統治者。',
+ tr:['権威','嵐の力','宇宙の秩序','厳しさ','文明の守護'],p:{pow:3,nat:2,jus:2,tra:1,cou:1}},
+
+// ══ アステカ (5) ══
+{n:'Quetzalcoatl',jp:'ケツァルコアトル',m:'aztec',t:'羽毛ある蛇神',e:'🐍',
+ d:'羽毛のある蛇として知られるアステカの創造神。知恵・芸術・文明・風を司り、優雅さと知性で世界に美をもたらした文化神。',
+ tr:['知恵','文明の創造','優雅さ','変革','芸術'],p:{wis:3,cre:3,tra:2,jus:1,fre:1}},
+{n:'Tezcatlipoca',jp:'テスカトリポカ',m:'aztec',t:'煙る鏡の神',e:'🖤',
+ d:'夜空・暗黒・争いを司る神。その黒曜石の鏡は人の心の真実を映し出す。光と影のバランスを保つために混沌を生み出す宇宙の均衡者。',
+ tr:['神秘','権謀術数','真実の鏡','混沌','力'],p:{mys:3,tri:3,pow:2,pas:1,wis:1}},
+{n:'Huitzilopochtli',jp:'ウィツィロポチトリ',m:'aztec',t:'太陽と戦争の神',e:'🌞',
+ d:'毎朝暗闇と戦い太陽を昇らせる戦争の神。アステカ人の守護神であり、その圧倒的な闘争心が太陽を動かし続ける。',
+ tr:['戦の神','守護','圧倒的力','太陽の力','闘争心'],p:{cou:3,pow:3,pas:2,jus:1,tra:1}},
+{n:'Coatlicue',jp:'コアトリクエ',m:'aztec',t:'大地と生死の母神',e:'🐍',
+ d:'蛇のスカートを身に纏うアステカの大地の母神。生と死と再生の全てを体現する根源的な存在。恐ろしくも慈悲深いその姿が生命の真実を示す。',
+ tr:['生と死','大地の力','根源的な力','恐ろしい慈悲','再生'],p:{nat:3,mys:3,tra:2,cre:1,har:1}},
+{n:'Tlaloc',jp:'トラロック',m:'aztec',t:'雨と嵐の神',e:'🌧️',
+ d:'雨・嵐・稲妻・豊穣を司るアステカの古代神。農業に欠かせない雨をもたらす一方、旱魃と洪水も引き起こす自然の恵みと脅威の両面の神。',
+ tr:['自然の恵み','両義性','豊穣','嵐','生命の水'],p:{nat:3,har:2,tra:2,fre:1,pow:1}},
+];
+
+// ── Questions (trait-based scoring) ──
+const QUESTIONS=[
+{text:'あなたが最も惹かれる「力」はどれですか？',
+ answers:[
+  {text:'すべてを支配し、世界に秩序をもたらす権威の力', s:{pow:3,jus:1}},
+  {text:'どんな難問も解き明かす、深遠な知恵の力',       s:{wis:3,tra:1}},
+  {text:'人の心を動かし、世界を美しくする創造の力',     s:{cre:3,har:1}},
+  {text:'常識を覆し、予想外の結末をもたらす変革の力',   s:{tri:2,fre:2,mys:1}},
+]},
+{text:'困難な状況に直面したとき、あなたはどう対処しますか？',
+ answers:[
+  {text:'真っ向から力でねじ伏せ、一気に解決する',         s:{cou:3,pow:2}},
+  {text:'冷静に分析し、最善の戦略を練ってから動く',       s:{wis:2,tri:2}},
+  {text:'仲間と力を合わせ、団結して乗り越える',           s:{har:3,jus:1}},
+  {text:'機転を利かせた奇策や意外なアプローチで打開する', s:{tri:3,cre:1}},
+]},
+{text:'あなたが最も大切にしている価値観はどれですか？',
+ answers:[
+  {text:'秩序と正義 ── 世界は公平であるべきだ',            s:{jus:3,pow:1}},
+  {text:'自由と探求 ── 広い世界を自分の目で見たい',        s:{fre:3,wis:1}},
+  {text:'愛と繋がり ── 大切な人との絆こそが全て',          s:{har:3,nat:1}},
+  {text:'知識と真実 ── 世界の謎を全て解き明かしたい',      s:{wis:2,tra:2}},
+]},
+{text:'一日だけ完全に自由な時間があったら、どう過ごしますか？',
+ answers:[
+  {text:'高い山の頂や展望台から、広大な景色をただ眺める',  s:{tra:2,pow:2}},
+  {text:'海や川に出かけ、水の中を自由に泳ぎ回る',          s:{nat:2,fre:2,pas:1}},
+  {text:'美術館や図書館で、芸術と知識の世界に浸る',        s:{wis:2,cre:2}},
+  {text:'大切な仲間たちと集まり、賑やかな宴を楽しむ',      s:{har:2,pas:2}},
+]},
+{text:'あなた自身を一言で表すとすれば？',
+ answers:[
+  {text:'威厳がある ── その存在感だけで場を支配する',      s:{pow:3,jus:1}},
+  {text:'情熱的 ── 感情が爆発するほど強く燃え上がる',      s:{pas:3,cou:1}},
+  {text:'神秘的 ── 何を考えているか誰にもわからない',      s:{mys:3,tra:1}},
+  {text:'優しい ── 誰かのために全力で動ける',              s:{har:3,nat:1}},
+]},
+{text:'好きな自然現象はどれですか？',
+ answers:[
+  {text:'雷鳴と稲妻 ── 空を引き裂く圧倒的なエネルギー',   s:{pow:2,pas:2}},
+  {text:'嵐と荒波 ── 全てをなぎ払う野性的な迫力',          s:{fre:2,nat:2,pas:1}},
+  {text:'夜明けと陽光 ── 世界を照らす澄んだ輝き',          s:{har:2,tra:2}},
+  {text:'深夜の静寂 ── 宇宙と対話するような孤独な時間',    s:{mys:3,wis:1}},
+]},
+{text:'グループの中でのあなたの役割は？',
+ answers:[
+  {text:'決断を下し、全体の方向を示すリーダー',             s:{pow:2,jus:2}},
+  {text:'問題を冷静に分析し、的確なアドバイスを与える参謀', s:{wis:3,tri:1}},
+  {text:'場を盛り上げ、みんなを笑顔にするムードメーカー',   s:{cre:2,har:2}},
+  {text:'裏から全員を支える縁の下の力持ち',                 s:{nat:2,har:2}},
+]},
+{text:'もし特別な力を持てるとしたら？',
+ answers:[
+  {text:'世界を統べる絶対的な権力と全を判断する知恵',       s:{pow:3,jus:1}},
+  {text:'過去・現在・未来の全てを見通す千里眼',             s:{wis:2,mys:2}},
+  {text:'嵐と雷を自在に操り、どんな敵も打ち倒す力',         s:{cou:2,nat:2,pow:1}},
+  {text:'どんな心も魅了し、望む感情を引き起こす魔法',       s:{tri:2,har:1,mys:2}},
+]},
+{text:'怒りを感じたとき、どのように反応しますか？',
+ answers:[
+  {text:'感情が爆発し、激しい怒りをぶつけてしまう',         s:{pas:3,cou:1}},
+  {text:'冷たい眼差しと威圧的な態度で相手を制する',         s:{pow:2,wis:2}},
+  {text:'表には出さず、密かに復讐の機会を虎視眈々と待つ',   s:{tri:3,mys:1}},
+  {text:'深呼吸して怒りを抑え、できる限り赦そうとする',     s:{har:3,tra:1}},
+]},
+{text:'あなたが夢見る理想の世界はどれですか？',
+ answers:[
+  {text:'公正な秩序が保たれ、全ての者が守られる世界',       s:{jus:3,pow:1}},
+  {text:'未知の謎に満ち、探求することに終わりのない世界',   s:{fre:2,wis:2}},
+  {text:'愛と豊穣に溢れ、全ての命が輝く世界',              s:{har:2,nat:2}},
+  {text:'変化と自由が渦巻き、誰もが自分らしく生きられる世界', s:{fre:2,tri:2,cre:1}},
+]},
+];
+
+// ── State ──
+let qIndex=0, userTraits={}, result=null;
+
+function resetTraits(){TR.forEach(t=>{userTraits[t]=0})}
+
+// ── Stars ──
+(function(){
+  const cvs=document.getElementById('starCanvas'),ctx=cvs.getContext('2d');
+  let W,H;
+  const S=Array.from({length:240},()=>({x:0,y:0,r:0,spd:0,ph:0}));
+  function resize(){
+    W=cvs.width=innerWidth; H=cvs.height=innerHeight;
+    S.forEach(s=>{s.x=Math.random()*W;s.y=Math.random()*H;s.r=Math.random()*1.4+.3;s.spd=Math.random()*.015+.004;s.ph=Math.random()*Math.PI*2});
+  }
+  function draw(t){
+    ctx.clearRect(0,0,W,H);
+    S.forEach(s=>{
+      const a=(Math.sin(t*s.spd+s.ph)+1)/2;
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(220,215,255,${a*.85+.05})`;ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  resize(); addEventListener('resize',resize); requestAnimationFrame(draw);
+})();
+
+// ── Screen helpers ──
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── Quiz ──
+function startQuiz(){
+  resetTraits(); qIndex=0;
+  show('quizScreen'); render();
+}
+
+function render(){
+  const q=QUESTIONS[qIndex], pct=Math.round(qIndex/QUESTIONS.length*100);
+  document.getElementById('qCounter').textContent=`質問 ${qIndex+1} / ${QUESTIONS.length}`;
+  document.getElementById('qPercent').textContent=`${pct}%`;
+  document.getElementById('progressBar').style.width=`${pct}%`;
+  document.getElementById('qNum').textContent=`QUESTION ${String(qIndex+1).padStart(2,'0')}`;
+  document.getElementById('qText').textContent=q.text;
+  const wrap=document.getElementById('answers');
+  wrap.innerHTML='';
+  ['A','B','C','D'].forEach((lbl,i)=>{
+    const b=document.createElement('button');
+    b.className='ans-btn';
+    b.innerHTML=`<span class="al">${lbl}.</span>${q.answers[i].text}`;
+    b.onclick=()=>pick(q.answers[i].s,b);
+    wrap.appendChild(b);
+  });
+  const card=document.getElementById('qCard');
+  card.style.animation='none'; void card.offsetHeight; card.style.animation='';
+}
+
+function pick(s,btn){
+  document.querySelectorAll('.ans-btn').forEach(b=>b.style.pointerEvents='none');
+  btn.classList.add('selected');
+  Object.entries(s).forEach(([t,v])=>{userTraits[t]=(userTraits[t]||0)+v});
+  setTimeout(()=>{
+    qIndex++;
+    if(qIndex<QUESTIONS.length){render()}else{calcResult()}
+  },540);
+}
+
+// ── Result ──
+function calcResult(){
+  show('quizScreen');
+  const ol=document.getElementById('loadingOverlay');
+  ol.classList.add('on');
+  setTimeout(()=>{
+    ol.classList.remove('on');
+    // find best match by dot product
+    let best=null, bestScore=-Infinity;
+    CHARS.forEach(c=>{
+      let score=0;
+      TR.forEach(t=>{score+=(userTraits[t]||0)*(c.p[t]||0)});
+      if(score>bestScore){bestScore=score;best=c}
+    });
+    result=best;
+    renderResult();
+    show('resultScreen');
+  },2400);
+}
+
+function renderResult(){
+  const c=result;
+  document.getElementById('resMytho').textContent=MYTH[c.m].label;
+  document.getElementById('resEmoji').textContent=c.e;
+  document.getElementById('resName').textContent=c.n;
+  document.getElementById('resNameJp').textContent=c.jp;
+  document.getElementById('resTitle').textContent=c.t;
+  document.getElementById('resDesc').textContent=c.d;
+  document.getElementById('resTraits').innerHTML=c.tr.map(t=>`<span class="trait">${t}</span>`).join('');
+}
+
+function restartQuiz(){show('titleScreen')}
+
+// ── Share ──
+function shareText(){
+  if(!result)return'';
+  return`🔮 神話キャラクター診断の結果\n\n私は「${result.jp}（${result.n}）」\n${MYTH[result.m].label} ／ ${result.t}\n\n${result.tr.join(' ・ ')}\n\n#神話キャラクター診断 #MythPersona`;
+}
+function shareTw(){window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText())}`,'_blank','width=600,height=420')}
+function shareLn(){window.open(`https://line.me/R/share?text=${encodeURIComponent(shareText())}`,'_blank')}
+function copyRes(){
+  const txt=shareText();
+  (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast('コピーしました！')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);toast('コピーしました！');
+  });
+}
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>
