@@ -83,6 +83,16 @@ body{min-height:100vh;background:radial-gradient(ellipse at 50% 30%,#1a1535 0%,v
 .res-desc{line-height:2;color:#c0b8d8;font-size:.91rem;max-width:500px;margin:0 auto 26px;position:relative;z-index:1}
 .res-traits{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;position:relative;z-index:1}
 .trait{background:rgba(201,162,39,.09);border:1px solid rgba(201,162,39,.27);color:var(--gold-l);padding:4px 14px;border-radius:20px;font-size:.8rem}
+/* ── Result Image ── */
+.res-img-frame{width:190px;height:190px;margin:0 auto 18px;position:relative;z-index:1;flex-shrink:0}
+.res-img-ring{position:absolute;inset:-8px;border-radius:50%;border:2px solid var(--gold);box-shadow:0 0 24px rgba(201,162,39,.45),inset 0 0 24px rgba(201,162,39,.08);animation:gpulse 3s ease-in-out infinite;pointer-events:none;z-index:2}
+.res-img-inner{width:100%;height:100%;border-radius:50%;overflow:hidden;background:rgba(201,162,39,.06);position:relative}
+.res-img{width:100%;height:100%;object-fit:cover;object-position:top center;display:block;opacity:0;transition:opacity .7s ease;position:absolute;inset:0}
+.res-img.loaded{opacity:1}
+.res-shimmer{position:absolute;inset:0;border-radius:50%;background:linear-gradient(90deg,rgba(201,162,39,.04) 25%,rgba(201,162,39,.16) 50%,rgba(201,162,39,.04) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite}
+@keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
+.res-emoji-fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:4rem;animation:float 3.5s ease-in-out infinite}
+.res-emoji-badge{position:absolute;bottom:2px;right:2px;width:46px;height:46px;background:var(--bg-card);border:2px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;z-index:3;box-shadow:0 0 10px rgba(201,162,39,.3)}
 .share-block{text-align:center;margin-bottom:18px}
 .share-label{font-size:.75rem;letter-spacing:.3em;color:var(--gold);margin-bottom:13px}
 .share-row{display:flex;gap:11px;justify-content:center;flex-wrap:wrap}
@@ -150,7 +160,15 @@ body{min-height:100vh;background:radial-gradient(ellipse at 50% 30%,#1a1535 0%,v
     <div class="result-card">
       <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
       <div class="res-myth" id="resMytho"></div>
-      <span class="res-emoji" id="resEmoji"></span>
+      <div class="res-img-frame">
+        <div class="res-img-ring"></div>
+        <div class="res-img-inner">
+          <div class="res-shimmer" id="resShimmer"></div>
+          <img class="res-img" id="resImg" alt="">
+          <div class="res-emoji-fallback" id="resEmojiFallback"></div>
+        </div>
+        <div class="res-emoji-badge" id="resEmoji"></div>
+      </div>
       <div class="res-name" id="resName"></div>
       <div class="res-name-jp" id="resNameJp"></div>
       <div class="res-title-badge" id="resTitle"></div>
@@ -664,7 +682,39 @@ function calcResult(){
   },2400);
 }
 
-function renderResult(){
+// ── Wikipedia title mapping (keyed by c.n) ──
+const WIKI={
+  'Zeus':'Zeus','Athena':'Athena','Apollo':'Apollo_(deity)','Poseidon':'Poseidon',
+  'Aphrodite':'Aphrodite','Ares':'Ares','Hermes':'Hermes','Hades':'Hades',
+  'Hephaestus':'Hephaestus','Dionysus':'Dionysus','Artemis':'Artemis','Hera':'Hera',
+  'Demeter':'Demeter','Persephone':'Persephone','Eros':'Eros',
+  'Odin':'Odin','Thor':'Thor','Loki':'Loki','Freya':'Freyja','Baldur':'Baldr',
+  'Tyr':'Tyr','Heimdall':'Heimdall','Hel':'Hel_(being)','Sigurd':'Sigurd','Skadi':'Skaði',
+  'Amaterasu':'Amaterasu','Susanoo':'Susanoo','Tsukuyomi':'Tsukuyomi',
+  'Izanagi':'Izanagi','Izanami':'Izanami','Raijin':'Raijin','Fujin':'Fujin',
+  'Inari':'Inari_Ōkami','Benzaiten':'Benzaiten','Ebisu':'Ebisu_(mythology)',
+  'Brahma':'Brahma','Vishnu':'Vishnu','Shiva':'Shiva','Lakshmi':'Lakshmi',
+  'Saraswati':'Saraswati','Durga':'Durga','Kali':'Kali','Ganesha':'Ganesha',
+  'Krishna':'Krishna','Hanuman':'Hanuman','Indra':'Indra','Agni':'Agni_(Hinduism)',
+  'Varuna':'Varuna','Arjuna':'Arjuna','Rama':'Rama',
+  'The Dagda':'The_Dagda','The Morrigan':'The_Morrígan','Lugh':'Lugh',
+  'Cú Chulainn':'Cú_Chulainn','Brigid':'Brigid','Cernunnos':'Cernunnos',
+  'Nuada':'Nuada_Airgetlám','Bran':'Bran_the_Blessed','Danu':'Danu_(Irish_goddess)','Arawn':'Arawn',
+  'Ra':'Ra_(sun_god)','Osiris':'Osiris','Isis':'Isis','Horus':'Horus','Seth':'Set_(deity)',
+  'Anubis':'Anubis','Thoth':'Thoth','Bastet':'Bastet','Hathor':'Hathor',
+  'Sekhmet':'Sekhmet','Ptah':'Ptah','Nephthys':'Nephthys','Nut':'Nut_(goddess)',
+  'Geb':'Geb','Maat':'Maat',
+  'Guanyin':'Guanyin','Sun Wukong':'Sun_Wukong','Nezha':'Nezha_(deity)','Nuwa':'Nüwa',
+  'Fuxi':'Fuxi',"Chang'e":"Chang'e",'Hou Yi':'Hou_Yi','Zhu Rong':'Zhu_Rong_(deity)',
+  'Guan Yu':'Guan_Yu','Zhong Kui':'Zhong_Kui','Erlang Shen':'Erlang_Shen',
+  'Long Wang':'Dragon_King_(Chinese_mythology)','Xi Wangmu':'Queen_Mother_of_the_West',
+  'Mazu':'Mazu_(goddess)','Caishen':'Caishen',
+  'Marduk':'Marduk','Ishtar':'Ishtar','Gilgamesh':'Gilgamesh','Enkidu':'Enkidu','Enlil':'Enlil',
+  'Quetzalcoatl':'Quetzalcoatl','Tezcatlipoca':'Tezcatlipoca',
+  'Huitzilopochtli':'Huitzilopochtli','Coatlicue':'Coatlicue','Tlaloc':'Tlaloc',
+};
+
+async function renderResult(){
   const c=result;
   document.getElementById('resMytho').textContent=MYTH[c.m].label;
   document.getElementById('resEmoji').textContent=c.e;
@@ -673,6 +723,34 @@ function renderResult(){
   document.getElementById('resTitle').textContent=c.t;
   document.getElementById('resDesc').textContent=c.d;
   document.getElementById('resTraits').innerHTML=c.tr.map(t=>`<span class="trait">${t}</span>`).join('');
+
+  // ── Image fetch ──
+  const imgEl=document.getElementById('resImg');
+  const shimmerEl=document.getElementById('resShimmer');
+  const fallbackEl=document.getElementById('resEmojiFallback');
+
+  // reset state
+  imgEl.classList.remove('loaded'); imgEl.src=''; imgEl.style.display='none';
+  fallbackEl.style.display='none'; fallbackEl.textContent=c.e;
+  shimmerEl.style.display='block';
+
+  const wikiTitle=WIKI[c.n];
+  if(!wikiTitle){shimmerEl.style.display='none';fallbackEl.style.display='flex';return}
+
+  try{
+    const res=await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wikiTitle)}`);
+    const data=await res.json();
+    // get a larger version by bumping px size in URL
+    const src=(data.thumbnail?.source||'').replace(/\/(\d+)px-/,(_,n)=>`/${Math.max(300,+n)}px-`);
+    if(!src){throw new Error('no image')}
+    imgEl.style.display='block';
+    imgEl.onload=()=>{shimmerEl.style.display='none';imgEl.classList.add('loaded')};
+    imgEl.onerror=()=>{imgEl.style.display='none';shimmerEl.style.display='none';fallbackEl.style.display='flex'};
+    imgEl.src=src;
+  }catch{
+    shimmerEl.style.display='none';
+    fallbackEl.style.display='flex';
+  }
 }
 
 function restartQuiz(){show('titleScreen')}
