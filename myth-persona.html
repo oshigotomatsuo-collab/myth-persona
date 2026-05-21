@@ -740,7 +740,7 @@ async function renderResult(){
   shimmerEl.style.display='block';captionEl.textContent='✨ AIイラスト生成中…';
 
   imgEl.style.display='block';
-  imgEl.onload=()=>{shimmerEl.style.display='none';imgEl.classList.add('loaded');captionEl.textContent='✨ AI生成イラスト'};
+  imgEl.onload=()=>{shimmerEl.style.display='none';imgEl.classList.add('loaded');captionEl.textContent=''};
   imgEl.onerror=()=>{imgEl.style.display='none';shimmerEl.style.display='none';fallbackEl.style.display='flex';captionEl.textContent=''};
   imgEl.src=pollinationsUrl(c);
 }
