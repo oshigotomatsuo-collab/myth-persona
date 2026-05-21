@@ -93,6 +93,29 @@ body{min-height:100vh;background:radial-gradient(ellipse at 50% 30%,#1a1535 0%,v
 @keyframes shimmer{from{background-position:200% 0}to{background-position:-200% 0}}
 .res-emoji-fallback{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:4rem;animation:float 3.5s ease-in-out infinite}
 .res-emoji-badge{position:absolute;bottom:2px;right:2px;width:46px;height:46px;background:var(--bg-card);border:2px solid var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;z-index:3;box-shadow:0 0 10px rgba(201,162,39,.3)}
+.res-img-caption{font-size:.68rem;color:var(--text-dim);letter-spacing:.08em;margin-top:8px;position:relative;z-index:1}
+/* ── API Key Modal ── */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(8,7,20,.9);z-index:400;align-items:center;justify-content:center;padding:20px}
+.modal-ov.on{display:flex}
+.modal-box{background:var(--bg-card);border:1px solid var(--gold-d);border-radius:20px;padding:34px 30px;max-width:460px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.7)}
+.modal-ttl{font-family:'Cinzel',serif;color:var(--gold-l);font-size:1.05rem;margin-bottom:10px}
+.modal-desc{color:var(--text-dim);font-size:.83rem;line-height:1.9;margin-bottom:18px}
+.modal-desc a{color:var(--gold);text-decoration:none}.modal-desc a:hover{text-decoration:underline}
+.key-inp{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--gold-d);border-radius:10px;padding:11px 14px;color:var(--text);font-family:monospace;font-size:.85rem;outline:none;margin-bottom:14px;transition:border-color .2s}
+.key-inp:focus{border-color:var(--gold)}.key-inp::placeholder{color:var(--text-dim)}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end}
+.btn-msave{background:linear-gradient(135deg,var(--bg-mid),#2d2660);border:1px solid var(--gold);color:var(--gold-l);padding:8px 22px;border-radius:20px;font-family:'Noto Serif JP',serif;font-size:.86rem;cursor:pointer;transition:all .25s}
+.btn-msave:hover{box-shadow:0 0 18px rgba(201,162,39,.35);background:linear-gradient(135deg,#2d2660,#3d3690)}
+.btn-mcancel{background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--text-dim);padding:8px 18px;border-radius:20px;font-family:'Noto Serif JP',serif;font-size:.86rem;cursor:pointer;transition:all .25s}
+.btn-mcancel:hover{border-color:rgba(255,255,255,.4);color:var(--text)}
+/* ── API setup bar ── */
+.api-bar{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.api-bar-label{font-size:.75rem;color:var(--text-dim);letter-spacing:.1em}
+.btn-apikey{background:rgba(201,162,39,.1);border:1px solid var(--gold-d);color:var(--gold);padding:5px 14px;border-radius:20px;font-size:.75rem;cursor:pointer;transition:all .25s;font-family:'Noto Serif JP',serif}
+.btn-apikey:hover{background:rgba(201,162,39,.2);border-color:var(--gold)}
+.api-status{font-size:.72rem;padding:3px 10px;border-radius:10px}
+.api-status.set{background:rgba(6,199,85,.12);color:#06c755;border:1px solid rgba(6,199,85,.3)}
+.api-status.unset{background:rgba(201,162,39,.08);color:var(--gold);border:1px solid var(--gold-d)}
 .share-block{text-align:center;margin-bottom:18px}
 .share-label{font-size:.75rem;letter-spacing:.3em;color:var(--gold);margin-bottom:13px}
 .share-row{display:flex;gap:11px;justify-content:center;flex-wrap:wrap}
@@ -114,6 +137,23 @@ body{min-height:100vh;background:radial-gradient(ellipse at 50% 30%,#1a1535 0%,v
 <canvas id="starCanvas"></canvas>
 <div id="loadingOverlay"><div class="spinner"></div><div class="loading-msg">神々の神託を読み解いています…</div></div>
 <div class="toast" id="toast"></div>
+
+<!-- API Key Modal -->
+<div class="modal-ov" id="apiModal">
+  <div class="modal-box">
+    <div class="modal-ttl">🔑 Gemini API キー設定</div>
+    <p class="modal-desc">
+      Google AI Studio の無料APIキーを入力すると、各神のイラストをAIで自動生成します。<br>
+      キーは <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com</a> で無料取得できます（Googleアカウント必要）。<br><br>
+      キーはこのブラウザにのみ保存され、外部には送信されません。
+    </p>
+    <input class="key-inp" id="apiKeyInput" type="password" placeholder="AIza...">
+    <div class="modal-btns">
+      <button class="btn-mcancel" onclick="closeApiModal()">キャンセル</button>
+      <button class="btn-msave" onclick="saveApiKey()">保存して生成</button>
+    </div>
+  </div>
+</div>
 
 <!-- Title -->
 <div class="screen active" id="titleScreen">
@@ -169,6 +209,7 @@ body{min-height:100vh;background:radial-gradient(ellipse at 50% 30%,#1a1535 0%,v
         </div>
         <div class="res-emoji-badge" id="resEmoji"></div>
       </div>
+      <div class="res-img-caption" id="resImgCaption"></div>
       <div class="res-name" id="resName"></div>
       <div class="res-name-jp" id="resNameJp"></div>
       <div class="res-title-badge" id="resTitle"></div>
@@ -176,6 +217,12 @@ body{min-height:100vh;background:radial-gradient(ellipse at 50% 30%,#1a1535 0%,v
       <p class="res-desc" id="resDesc"></p>
       <div class="res-traits" id="resTraits"></div>
     </div>
+    <div class="api-bar">
+      <span class="api-bar-label">✦ AI画像生成</span>
+      <button class="btn-apikey" onclick="openApiModal()">🔑 Gemini APIキー設定</button>
+      <span class="api-status" id="apiStatus"></span>
+    </div>
+
     <div class="share-block">
       <p class="share-label">✦ &nbsp; 結果をシェアする &nbsp; ✦</p>
       <div class="share-row">
@@ -682,37 +729,51 @@ function calcResult(){
   },2400);
 }
 
-// ── Wikipedia title mapping (keyed by c.n) ──
-const WIKI={
-  'Zeus':'Zeus','Athena':'Athena','Apollo':'Apollo_(deity)','Poseidon':'Poseidon',
-  'Aphrodite':'Aphrodite','Ares':'Ares','Hermes':'Hermes','Hades':'Hades',
-  'Hephaestus':'Hephaestus','Dionysus':'Dionysus','Artemis':'Artemis','Hera':'Hera',
-  'Demeter':'Demeter','Persephone':'Persephone','Eros':'Eros',
-  'Odin':'Odin','Thor':'Thor','Loki':'Loki','Freya':'Freyja','Baldur':'Baldr',
-  'Tyr':'Tyr','Heimdall':'Heimdall','Hel':'Hel_(being)','Sigurd':'Sigurd','Skadi':'Skaði',
-  'Amaterasu':'Amaterasu','Susanoo':'Susanoo','Tsukuyomi':'Tsukuyomi',
-  'Izanagi':'Izanagi','Izanami':'Izanami','Raijin':'Raijin','Fujin':'Fujin',
-  'Inari':'Inari_Ōkami','Benzaiten':'Benzaiten','Ebisu':'Ebisu_(mythology)',
-  'Brahma':'Brahma','Vishnu':'Vishnu','Shiva':'Shiva','Lakshmi':'Lakshmi',
-  'Saraswati':'Saraswati','Durga':'Durga','Kali':'Kali','Ganesha':'Ganesha',
-  'Krishna':'Krishna','Hanuman':'Hanuman','Indra':'Indra','Agni':'Agni_(Hinduism)',
-  'Varuna':'Varuna','Arjuna':'Arjuna','Rama':'Rama',
-  'The Dagda':'The_Dagda','The Morrigan':'The_Morrígan','Lugh':'Lugh',
-  'Cú Chulainn':'Cú_Chulainn','Brigid':'Brigid','Cernunnos':'Cernunnos',
-  'Nuada':'Nuada_Airgetlám','Bran':'Bran_the_Blessed','Danu':'Danu_(Irish_goddess)','Arawn':'Arawn',
-  'Ra':'Ra_(sun_god)','Osiris':'Osiris','Isis':'Isis','Horus':'Horus','Seth':'Set_(deity)',
-  'Anubis':'Anubis','Thoth':'Thoth','Bastet':'Bastet','Hathor':'Hathor',
-  'Sekhmet':'Sekhmet','Ptah':'Ptah','Nephthys':'Nephthys','Nut':'Nut_(goddess)',
-  'Geb':'Geb','Maat':'Maat',
-  'Guanyin':'Guanyin','Sun Wukong':'Sun_Wukong','Nezha':'Nezha_(deity)','Nuwa':'Nüwa',
-  'Fuxi':'Fuxi',"Chang'e":"Chang'e",'Hou Yi':'Hou_Yi','Zhu Rong':'Zhu_Rong_(deity)',
-  'Guan Yu':'Guan_Yu','Zhong Kui':'Zhong_Kui','Erlang Shen':'Erlang_Shen',
-  'Long Wang':'Dragon_King_(Chinese_mythology)','Xi Wangmu':'Queen_Mother_of_the_West',
-  'Mazu':'Mazu_(goddess)','Caishen':'Caishen',
-  'Marduk':'Marduk','Ishtar':'Ishtar','Gilgamesh':'Gilgamesh','Enkidu':'Enkidu','Enlil':'Enlil',
-  'Quetzalcoatl':'Quetzalcoatl','Tezcatlipoca':'Tezcatlipoca',
-  'Huitzilopochtli':'Huitzilopochtli','Coatlicue':'Coatlicue','Tlaloc':'Tlaloc',
+// ── Gemini API ──
+const GEMINI_MODEL='gemini-2.0-flash-preview-image-generation';
+function getKey(){return localStorage.getItem('gemini_api_key')||''}
+function setKey(k){if(k)localStorage.setItem('gemini_api_key',k);else localStorage.removeItem('gemini_api_key')}
+function updateApiStatus(){
+  const el=document.getElementById('apiStatus');if(!el)return;
+  if(getKey()){el.textContent='✓ キー設定済み';el.className='api-status set'}
+  else{el.textContent='未設定';el.className='api-status unset'}
+}
+function openApiModal(){
+  document.getElementById('apiKeyInput').value=getKey();
+  document.getElementById('apiModal').classList.add('on');
+}
+function closeApiModal(){document.getElementById('apiModal').classList.remove('on')}
+function saveApiKey(){
+  const k=document.getElementById('apiKeyInput').value.trim();
+  setKey(k);closeApiModal();updateApiStatus();
+  if(result)renderResult();
+}
+document.getElementById('apiModal').addEventListener('click',function(e){if(e.target===this)closeApiModal()});
+
+const MYTH_EN={
+  greek:'Greek mythology',norse:'Norse mythology',japan:'Japanese Shinto mythology',
+  india:'Hindu mythology',celtic:'Celtic mythology',egypt:'Ancient Egyptian mythology',
+  china:'Chinese mythology',meso:'Ancient Mesopotamian mythology',aztec:'Aztec mythology'
 };
+
+async function generateGeminiImage(c){
+  const key=getKey();
+  if(!key)throw new Error('no key');
+  const prompt=`A breathtaking fantasy portrait of ${c.n} (${c.jp}), the "${c.t}" from ${MYTH_EN[c.m]}. Key traits: ${c.tr.join(', ')}. Epic divine atmosphere, dramatic golden light rays, dark cosmic starfield background, richly detailed digital illustration, painterly style, cinematic composition. Portrait orientation. No text, no watermark, no borders.`;
+  const res=await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${key}`,
+    {method:'POST',headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({
+       contents:[{parts:[{text:prompt}]}],
+       generationConfig:{responseModalities:['IMAGE','TEXT']}
+     })}
+  );
+  if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||`HTTP ${res.status}`)}
+  const data=await res.json();
+  const part=data.candidates?.[0]?.content?.parts?.find(p=>p.inlineData);
+  if(!part)throw new Error('no image in response');
+  return`data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+}
 
 async function renderResult(){
   const c=result;
@@ -723,34 +784,41 @@ async function renderResult(){
   document.getElementById('resTitle').textContent=c.t;
   document.getElementById('resDesc').textContent=c.d;
   document.getElementById('resTraits').innerHTML=c.tr.map(t=>`<span class="trait">${t}</span>`).join('');
+  updateApiStatus();
 
-  // ── Image fetch ──
   const imgEl=document.getElementById('resImg');
   const shimmerEl=document.getElementById('resShimmer');
   const fallbackEl=document.getElementById('resEmojiFallback');
+  const captionEl=document.getElementById('resImgCaption');
 
-  // reset state
-  imgEl.classList.remove('loaded'); imgEl.src=''; imgEl.style.display='none';
-  fallbackEl.style.display='none'; fallbackEl.textContent=c.e;
-  shimmerEl.style.display='block';
+  imgEl.classList.remove('loaded');imgEl.src='';imgEl.style.display='none';
+  fallbackEl.style.display='none';fallbackEl.textContent=c.e;
+  shimmerEl.style.display='block';captionEl.textContent='';
 
-  const wikiTitle=WIKI[c.n];
-  if(!wikiTitle){shimmerEl.style.display='none';fallbackEl.style.display='flex';return}
-
-  try{
-    const res=await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wikiTitle)}`);
-    const data=await res.json();
-    // get a larger version by bumping px size in URL
-    const src=(data.thumbnail?.source||'').replace(/\/(\d+)px-/,(_,n)=>`/${Math.max(300,+n)}px-`);
-    if(!src){throw new Error('no image')}
-    imgEl.style.display='block';
-    imgEl.onload=()=>{shimmerEl.style.display='none';imgEl.classList.add('loaded')};
-    imgEl.onerror=()=>{imgEl.style.display='none';shimmerEl.style.display='none';fallbackEl.style.display='flex'};
-    imgEl.src=src;
-  }catch{
-    shimmerEl.style.display='none';
-    fallbackEl.style.display='flex';
+  function showFallback(msg){
+    shimmerEl.style.display='none';fallbackEl.style.display='flex';
+    captionEl.textContent=msg||'';
   }
+  function showImg(src,caption){
+    imgEl.style.display='block';
+    imgEl.onload=()=>{shimmerEl.style.display='none';imgEl.classList.add('loaded');captionEl.textContent=caption};
+    imgEl.onerror=()=>showFallback('画像の読み込みに失敗しました');
+    imgEl.src=src;
+  }
+
+  if(getKey()){
+    captionEl.textContent='✨ AIイラスト生成中…';
+    try{
+      const src=await generateGeminiImage(c);
+      showImg(src,'✨ Gemini AI生成');
+      return;
+    }catch(err){
+      console.warn('Gemini:',err.message);
+      showFallback(`⚠ 生成失敗: ${err.message}`);
+      return;
+    }
+  }
+  showFallback('🔑 APIキーを設定するとAIイラストが表示されます');
 }
 
 function restartQuiz(){show('titleScreen')}
