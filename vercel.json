@@ -10,6 +10,10 @@
     {
       "src": "/",
       "dest": "/myth-persona.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/myth-persona.html"
     }
   ]
 }
