@@ -1,19 +1,12 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "myth-persona.html",
-      "use": "@vercel/static"
-    }
+    { "src": "myth-persona.html", "use": "@vercel/static" },
+    { "src": "privacy.html", "use": "@vercel/static" }
   ],
   "routes": [
-    {
-      "src": "/",
-      "dest": "/myth-persona.html"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/myth-persona.html"
-    }
+    { "src": "/", "dest": "/myth-persona.html" },
+    { "src": "/privacy", "dest": "/privacy.html" },
+    { "src": "/privacy.html", "dest": "/privacy.html" }
   ]
 }

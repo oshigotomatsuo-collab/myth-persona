@@ -144,6 +144,43 @@ body{min-height:100vh;background:radial-gradient(ellipse at 50% 30%,#1a1535 0%,v
 .btn-share.cp:hover{background:rgba(201,162,39,.22);transform:translateY(-2px);box-shadow:0 6px 20px rgba(201,162,39,.25)}
 .btn-retry{display:block;margin:0 auto;background:transparent;border:1px solid rgba(255,255,255,.17);color:var(--text-dim);padding:10px 30px;border-radius:30px;font-family:'Noto Serif JP',serif;font-size:.86rem;cursor:pointer;transition:all .25s}
 .btn-retry:hover{border-color:rgba(255,255,255,.45);color:var(--text)}
+/* ── Character List ── */
+.btn-charlist{display:inline-block;margin-top:18px;background:transparent;border:1px solid rgba(201,162,39,.35);color:var(--gold);padding:9px 28px;border-radius:30px;font-family:'Noto Serif JP',serif;font-size:.84rem;cursor:pointer;transition:all .25s;letter-spacing:.1em}
+.btn-charlist:hover{background:rgba(201,162,39,.1);border-color:var(--gold)}
+.cl-header{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-top:20px}
+.btn-back{background:transparent;border:1px solid rgba(255,255,255,.2);color:var(--text-dim);padding:7px 18px;border-radius:20px;font-family:'Noto Serif JP',serif;font-size:.8rem;cursor:pointer;transition:all .25s}
+.btn-back:hover{border-color:rgba(255,255,255,.5);color:var(--text)}
+.cl-title{font-family:'Cinzel',serif;font-size:1.2rem;color:var(--gold-l);letter-spacing:.2em}
+.myth-tabs{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:22px}
+.myth-tab{background:rgba(255,255,255,.03);border:1px solid rgba(201,162,39,.18);color:var(--text-dim);padding:5px 14px;border-radius:20px;font-family:'Noto Serif JP',serif;font-size:.78rem;cursor:pointer;transition:all .2s}
+.myth-tab:hover{background:rgba(201,162,39,.08);color:var(--gold)}
+.myth-tab.active{background:rgba(201,162,39,.15);border-color:var(--gold);color:var(--gold-l)}
+.char-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding-bottom:60px}
+.char-card{background:var(--bg-card);border:1px solid rgba(201,162,39,.18);border-radius:14px;padding:16px 14px;cursor:pointer;transition:all .25s;text-align:center}
+.char-card:hover{border-color:rgba(201,162,39,.5);background:rgba(201,162,39,.05);transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,.4)}
+.cc-emoji{font-size:2rem;margin-bottom:6px}
+.cc-myth{font-size:.6rem;letter-spacing:.15em;color:var(--gold-d);margin-bottom:4px}
+.cc-name{font-family:'Cinzel',serif;font-size:.9rem;color:var(--gold-l);line-height:1.2;margin-bottom:2px}
+.cc-jp{font-size:.75rem;color:var(--silver);margin-bottom:6px}
+.cc-title{font-size:.7rem;color:var(--gold);background:rgba(201,162,39,.08);border:1px solid rgba(201,162,39,.2);border-radius:10px;padding:2px 9px;display:inline-block;margin-bottom:8px}
+.cc-traits{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+.cc-trait{font-size:.62rem;color:var(--text-dim);background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);padding:2px 7px;border-radius:10px}
+/* ── Char Detail Modal ── */
+.cd-modal{display:none;position:fixed;inset:0;background:rgba(8,7,20,.88);z-index:200;align-items:center;justify-content:center;padding:20px}
+.cd-modal.on{display:flex}
+.cd-box{background:var(--bg-card);border:1px solid rgba(201,162,39,.4);border-radius:20px;padding:32px 28px;max-width:480px;width:100%;max-height:90vh;overflow-y:auto;position:relative}
+.cd-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--text-dim);font-size:1.4rem;cursor:pointer;line-height:1}
+.cd-emoji{font-size:3rem;text-align:center;margin-bottom:8px}
+.cd-myth-tag{text-align:center;font-size:.68rem;letter-spacing:.2em;color:var(--gold-d);margin-bottom:4px}
+.cd-name{font-family:'Cinzel',serif;font-size:1.6rem;color:var(--gold-l);text-align:center;margin-bottom:2px}
+.cd-jp{text-align:center;color:var(--silver);font-size:.9rem;margin-bottom:10px}
+.cd-title-b{display:block;text-align:center;border:1px solid rgba(201,162,39,.4);border-radius:20px;padding:4px 18px;font-size:.82rem;color:var(--gold);margin:0 auto 16px;width:fit-content}
+.cd-divider{height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:14px 0}
+.cd-desc{font-size:.88rem;line-height:2;color:var(--text-dim);margin-bottom:14px}
+.cd-traits{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.cd-trait{font-size:.78rem;color:var(--gold-l);background:rgba(201,162,39,.09);border:1px solid rgba(201,162,39,.27);padding:3px 12px;border-radius:16px}
+.cd-ep-label{font-size:.68rem;letter-spacing:.18em;color:var(--gold-d);margin-bottom:8px}
+.cd-ep{font-size:.84rem;line-height:1.9;color:var(--text-dim)}
 .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(16,12,38,.97);border:1px solid var(--gold);color:var(--gold-l);padding:10px 24px;border-radius:30px;font-size:.86rem;z-index:200;transition:transform .3s cubic-bezier(.4,0,.2,1);white-space:nowrap}
 .toast.show{transform:translateX(-50%) translateY(0)}
 @media(max-width:560px){.q-card{padding:24px 16px}.result-card{padding:32px 16px}.myth-grid{gap:7px}.mbadge{padding:8px 10px}}
@@ -174,6 +211,40 @@ body{min-height:100vh;background:radial-gradient(ellipse at 50% 30%,#1a1535 0%,v
     </div>
     <p class="lead">9つの神話・100体のキャラクターから、あなたの魂に宿る神話的本質を診断します。<br>10の問いに答えて、運命の神を見つけよう。</p>
     <button class="btn-start" onclick="startQuiz()">診断を始める</button>
+    <button class="btn-charlist" onclick="show('charListScreen')">📖 登場キャラクター一覧</button>
+    <p style="margin-top:28px;font-size:.72rem;color:var(--text-dim)">
+      <a href="privacy.html" style="color:var(--text-dim);text-decoration:underline;text-underline-offset:3px">プライバシーポリシー</a>
+    </p>
+  </div>
+</div>
+
+<!-- Character List -->
+<div class="screen" id="charListScreen" style="flex-direction:column">
+  <div class="container">
+    <div class="cl-header">
+      <button class="btn-back" onclick="show('titleScreen')">← 戻る</button>
+      <span class="cl-title">CHARACTER LIST</span>
+    </div>
+    <div class="myth-tabs" id="mythTabs"></div>
+    <div class="char-grid" id="charGrid"></div>
+  </div>
+</div>
+
+<!-- Character Detail Modal -->
+<div class="cd-modal" id="cdModal">
+  <div class="cd-box">
+    <button class="cd-close" onclick="closeCdModal()">✕</button>
+    <div class="cd-emoji" id="cdEmoji"></div>
+    <div class="cd-myth-tag" id="cdMythTag"></div>
+    <div class="cd-name" id="cdName"></div>
+    <div class="cd-jp" id="cdJp"></div>
+    <span class="cd-title-b" id="cdTitle"></span>
+    <div class="cd-divider"></div>
+    <p class="cd-desc" id="cdDesc"></p>
+    <div class="cd-traits" id="cdTraits"></div>
+    <div class="cd-divider"></div>
+    <div class="cd-ep-label">✦ 神話のエピソード ✦</div>
+    <p class="cd-ep" id="cdEp"></p>
   </div>
 </div>
 
@@ -687,6 +758,7 @@ function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   scrollTo({top:0,behavior:'smooth'});
+  if(id==='charListScreen')initCharList();
 }
 
 // ── Quiz ──
@@ -921,6 +993,66 @@ async function renderResult(){
 }
 
 function restartQuiz(){show('titleScreen')}
+
+// ── Character List ──
+let currentFilter='all';
+
+function initCharList(){
+  const tabs=document.getElementById('mythTabs');
+  const filters=[
+    {k:'all',label:'すべて（100体）'},
+    {k:'greek',label:'⚡ ギリシャ'},
+    {k:'norse',label:'🌿 北欧'},
+    {k:'japan',label:'🌸 日本'},
+    {k:'india',label:'🕉️ インド'},
+    {k:'celtic',label:'🍀 ケルト'},
+    {k:'egypt',label:'☥ エジプト'},
+    {k:'china',label:'🐉 中国'},
+    {k:'meso',label:'🏺 メソポタミア'},
+    {k:'aztec',label:'🌺 アステカ'},
+  ];
+  tabs.innerHTML=filters.map(f=>
+    `<button class="myth-tab${f.k==='all'?' active':''}" onclick="filterChars('${f.k}')">${f.label}</button>`
+  ).join('');
+  renderCharGrid('all');
+}
+
+function filterChars(myth){
+  currentFilter=myth;
+  document.querySelectorAll('.myth-tab').forEach(b=>{
+    b.classList.toggle('active',b.textContent.includes(myth==='all'?'すべて':MYTH[myth]?.label.replace(/^.\s/,'')||myth));
+  });
+  renderCharGrid(myth);
+}
+
+function renderCharGrid(myth){
+  const list=myth==='all'?CHARS:CHARS.filter(c=>c.m===myth);
+  document.getElementById('charGrid').innerHTML=list.map(c=>`
+    <div class="char-card" onclick="openCdModal('${c.n.replace(/'/g,"\\'")}')">
+      <div class="cc-emoji">${c.e}</div>
+      <div class="cc-myth">${MYTH[c.m].label}</div>
+      <div class="cc-name">${c.n}</div>
+      <div class="cc-jp">${c.jp}</div>
+      <div class="cc-title">${c.t}</div>
+      <div class="cc-traits">${c.tr.slice(0,3).map(t=>`<span class="cc-trait">${t}</span>`).join('')}</div>
+    </div>
+  `).join('');
+}
+
+function openCdModal(name){
+  const c=CHARS.find(ch=>ch.n===name);if(!c)return;
+  document.getElementById('cdEmoji').textContent=c.e;
+  document.getElementById('cdMythTag').textContent=MYTH[c.m].label;
+  document.getElementById('cdName').textContent=c.n;
+  document.getElementById('cdJp').textContent=c.jp;
+  document.getElementById('cdTitle').textContent=c.t;
+  document.getElementById('cdDesc').textContent=c.d;
+  document.getElementById('cdTraits').innerHTML=c.tr.map(t=>`<span class="cd-trait">${t}</span>`).join('');
+  document.getElementById('cdEp').textContent=EPISODES[c.n]||'エピソード情報なし';
+  document.getElementById('cdModal').classList.add('on');
+}
+function closeCdModal(){document.getElementById('cdModal').classList.remove('on')}
+document.getElementById('cdModal').addEventListener('click',function(e){if(e.target===this)closeCdModal()});
 
 // ── Share ──
 function shareText(){
